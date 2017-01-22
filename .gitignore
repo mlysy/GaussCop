@@ -1,0 +1,15 @@
+# usual .gitignore for R packages
+
+# C++
+*.o
+*.so
+*.dll
+
+# R
+*.Rhistory
+*.Rapp.history
+.RData
+Read-and-delete-me
+
+# Rstudio
+.Rproj.user/

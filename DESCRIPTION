@@ -1,0 +1,16 @@
+Package: GaussCop
+Type: Package
+Title: Functions for fitting, evaluating, and sampling from a Gaussian Copula
+    distribution.
+Version: 0.0.0.9004
+Date: 2016-08-15
+Author: Martin Lysy
+Maintainer: Martin Lysy <mlysy@uwaterloo.ca>
+Description: Provides a representation of a Gaussian Copula distribution to
+    efficiently work with arbitrary margins. Fitting of these margins is done
+    by kernel smoothing or a combined Box-Cox and Gram-Charlier approximation.
+    Functions are also provided for density evaluation and random sampling.
+License: GPL 3
+Imports:
+    mvtnorm
+RoxygenNote: 5.0.1

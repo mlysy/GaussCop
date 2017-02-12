@@ -64,6 +64,5 @@ rgcopCond <- function(n, gCop, XCond, iCond, debug = FALSE) {
 .rmvnCond <- function(n, XO, VOO, VPP, VOP) {
   nP <- nrow(VPP)
   IP <- rbind(t(VOP), XO) %*% solve(VOO, VOP)
-  rmvnorm(n, mean = IP[-(1:nP),,drop=FALSE],
-          sigma = VPP - IP[(1:nP),,drop=FALSE])
+  rmvnorm(n, sigma = VPP - IP[(1:nP),,drop=FALSE]) + IP[-(1:nP),,drop=FALSE]
 }

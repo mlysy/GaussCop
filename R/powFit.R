@@ -13,7 +13,7 @@
 #' Note that \code{C} is only calculated if \code{normalize = TRUE}.
 #' @return The vector \code{z} of transformed values, and optionally the Jacobian of the inverse transformation.  See details.
 #' @export
-pow.trans <- function(x, lambda = 0, alpha = 0, normalize = FALSE,
+powTrans <- function(x, lambda = 0, alpha = 0, normalize = FALSE,
                       jacobian = FALSE, debug = FALSE) {
   if(lambda == 0) z <- log(x + alpha) else z <- ((x + alpha)^lambda - 1)/lambda
   if(debug) browser()
@@ -40,13 +40,13 @@ powFit <- function(x, alpha = NA, interval = c(-5, 5), ..., debug = FALSE) {
  n <- length(x)
  mx <- min(x)
  fl <- function(lambda) {
-   z <- pow.trans(x = x, lambda = lambda, alpha = 0)
+   z <- powTrans(x = x, lambda = lambda, alpha = 0)
    s2 <- var(z)*(n-1)/n
    -n/2 * log(s2) + (lambda-1) * lx
  }
  fal <- function(theta) {
    if(theta[1] + mx <= 0) return(-Inf)
-   z <- pow.trans(x = x, lambda = theta[2], alpha = theta[1])
+   z <- powTrans(x = x, lambda = theta[2], alpha = theta[1])
    s2 <- var(z)*(n-1)/n
    -n/2 * log(s2) + (theta[2]-1) * sum(log(x + theta[1]))
  }

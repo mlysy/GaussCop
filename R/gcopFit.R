@@ -26,7 +26,7 @@ gcopFit <- function(X, Rho, fitXD = c("kernel", "gc4", "normal"), ...) {
     Z <- sapply(1:ncol(X), function(ii) {
       pXD(q = X[,ii], xDens = XDens[[ii]])
     })
-    Rho <- cor(qnorm(Z))
+    if(missing(Rho)) Rho <- cor(qnorm(Z))
     X <- XDens
   } else if(is.list(X)) {
     if(!all(sapply(X, class) == "xDens")) {

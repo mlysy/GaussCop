@@ -11,11 +11,15 @@ rgcopCond <- function(n, gCop, XCond, iCond, debug = FALSE) {
   # determine conditioning variables
   nrv <- length(gCop$XDens)
   nm <- names(gCop$XDens)
-  iCond <- .getiCond(iCond, XCond, nm)
+  if(!is.matrix(XCond)) XCond <- t(XCond)
+  if(missing(iCond)) iCond <- colnames(XCond)
+  iCond <- .getiRV(RVnames = nm, iRV = iCond)
   nCond <- length(iCond)
-  if(!is.matrix(XCond)) {
-    XCond <- matrix(XCond, ncol = nCond)
-  }
+  ## iCond <- .getiCond(iCond, XCond, nm)
+  ## nCond <- length(iCond)
+  ## if(!is.matrix(XCond)) {
+  ##   XCond <- matrix(XCond, ncol = nCond)
+  ## }
   if(!all(iCond %in% 1:nrv) || nCond != ncol(XCond)) {
     stop("Incorrect specification of iCond.")
   }

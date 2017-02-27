@@ -29,3 +29,15 @@ wquantile <- function(x, weights = NULL, probs = seq(0, 1, 0.25),
   ans
 }
 
+# extract the indices of the conditioning variables
+# return the indices as an integer vector, not logical vector.
+.getiRV <- function(RVnames, iRV) {
+  if(is.character(iRV)) {
+    RV <- 1:length(RVnames)
+    names(RV) <- RVnames
+    iRV <- as.numeric(RV[iRV])
+  } else if(is.logical(iRV)) {
+    iRV <- which(iRV)
+  }
+  iRV
+}

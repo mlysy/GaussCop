@@ -3,11 +3,12 @@
 require(devtools)
 
 pkg.path <- "C:/Users/Jerome/Documents/R/GaussCop"
+build.path <- "C:/Users/Jerome/Documents/R/build"
 
 document(pkg = pkg.path)
 install(pkg = pkg.path)
 
-build(pkg = pkg.path)
+build(pkg = pkg.path, path = build.path)
 
 #--- package structure ----------------------------------------------------------
 

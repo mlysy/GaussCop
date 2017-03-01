@@ -5,7 +5,8 @@
 #' @return An \code{xDens} object.  See \code{\link{xDens}}.
 #' @export
 xdensity <- function(XY, mean, sd) {
-  sd.infl <- 1/5 # should eventually remove this...
+  #sd.infl <- 1/5 # should eventually remove this...
+  sd.infl <- 1
   xgrid <- XY[,1]
   # check for regular grid
   dx <- diff(xgrid)

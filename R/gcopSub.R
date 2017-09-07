@@ -11,7 +11,7 @@ gcopSub <- function(gCop, subset) {
   if(is.null(nm)) nm <- 1:nrv
   if(missing(subset)) subset <- nm
   iRV <- .getiRV(RVnames = nm, iRV = subset)
-  gc <- list(XDens = gCop$XDens[iRV], Rho = gCop$Rho[iRV,iRV])
+  gc <- list(XDens = gCop$XDens[iRV], Rho = gCop$Rho[iRV,iRV,drop=FALSE])
   class(gc) <- "gcop"
   gc
 }

@@ -8,4 +8,3 @@
 \description{
 Fitting, Evaluating, and Sampling from the Gaussian Copula Distribution.
 }
-

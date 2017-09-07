@@ -28,4 +28,3 @@ A \code{gcop} object is a list with elements:
   \item \code{Rho}: the correlation matrix between the normalized quantiles.
 }
 }
-

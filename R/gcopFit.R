@@ -23,10 +23,10 @@ gcopFit <- function(X, Rho, fitXD = c("kernel", "gc4", "normal"), ...) {
       XDens <- apply(X, 2, normalXD, ...)
     }
     # correlation
-    Z <- sapply(1:ncol(X), function(ii) {
+    U <- sapply(1:ncol(X), function(ii) {
       pXD(q = X[,ii], xDens = XDens[[ii]])
     })
-    if(missing(Rho)) Rho <- cor(qnorm(Z))
+    if(missing(Rho)) Rho <- cor(qnorm(U))
     X <- XDens
   } else if(is.list(X)) {
     if(!all(sapply(X, class) == "xDens")) {

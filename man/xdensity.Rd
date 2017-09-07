@@ -9,7 +9,7 @@ xdensity(XY, mean, sd)
 \arguments{
 \item{XY}{2-column matrix representation of a univariate density.  The first column is a grid of x values giving the centers of bins.   The second column are the corresponding densities.}
 
-\item{mean, sd}{mean and standard deviation of the normal to use outside the grid values in \code{XY}.}
+\item{mean, sd}{Optional mean and standard deviation of the normal to use outside the grid values in \code{XY}.  Defaults to grid-based approximation using \code{XY}.}
 }
 \value{
 An \code{xDens} object.  See \code{\link{xDens}}.
@@ -17,4 +17,3 @@ An \code{xDens} object.  See \code{\link{xDens}}.
 \description{
 Extend a Matrix Representation of a Density to an \code{xDens} Object
 }
-

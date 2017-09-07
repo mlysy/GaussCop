@@ -35,4 +35,3 @@ Combined Box-Cox Transformation + Gram-Charlier Density Approximation.
 
 \code{lambda} can be estimated from the data, but for stability \code{alpha} must be provided.
 }
-

@@ -13,4 +13,4 @@ Description: Provides a representation of a Gaussian Copula distribution to
 License: GPL 3
 Imports:
     mvtnorm
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1

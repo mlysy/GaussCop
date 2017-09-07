@@ -26,4 +26,3 @@ The likelihood for optimization is
 \deqn{\code{L(lambda, alpha | x) = prod(dnorm(z(x | lambda, alpha)) *  |dz(x | lambda, alpha) / dx|)},}
 where \code{z(x | lambda, alpha)} is the Box-Cox transformation.
 }
-

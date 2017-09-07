@@ -8,8 +8,6 @@
 # R
 *.Rhistory
 *.Rapp.history
-.RData
-Read-and-delete-me
 
-# Rstudio
-.Rproj.user/
+# osx
+*.DS_Store

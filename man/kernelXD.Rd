@@ -23,4 +23,3 @@ an \code{xDens} object.
 \description{
 Extended Kernel Density Approximation
 }
-

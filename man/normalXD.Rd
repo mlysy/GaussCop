@@ -19,4 +19,3 @@ an \code{xDens} object.
 \description{
 Normal Extended Density.
 }
-

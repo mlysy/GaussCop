@@ -17,4 +17,3 @@ A \code{gcop} with variables possibly removed.
 \description{
 Marginal subset of a gcop object.
 }
-

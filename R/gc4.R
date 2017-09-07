@@ -54,7 +54,7 @@ gc4XD <- function(x, lambda = NULL, alpha = 0, cmom = NULL, trim = .01,
   m <- min(x, from)
   z <- x - m + 1
   if(is.null(lambda)) lambda <- powFit(z, alpha = alpha, ...)["lambda"]
-  z <- pow.trans(z, lambda = lambda, alpha = alpha)
+  z <- powTrans(z, lambda = lambda, alpha = alpha)
   if(is.null(cmom)) {
     cm <- base::mean(z)
     cm <- c(cm, trimmed.mean((z - cm)^2, trim = trim,
@@ -70,3 +70,19 @@ gc4XD <- function(x, lambda = NULL, alpha = 0, cmom = NULL, trim = .01,
   XY <- cbind(x = x*x.sd, y = y/x.sd)
   xdensity(XY = XY, mean = mean, sd = sd)
 }
+
+# generalized box-cox transformation
+# optionally include the jacobian vector, which converts transformed density
+# values back to the original scale.
+## pow.trans <- function(x, lambda = 0, alpha = 0, normalize = FALSE,
+##                       jacobian = FALSE, debug = FALSE) {
+##   if(lambda == 0) z <- log(x + alpha) else z <- ((x + alpha)^lambda - 1)/lambda
+##   if(debug) browser()
+##   if(normalize) {
+##     gm <- exp(mean(log(x)))
+##     if(lambda == 0) K <- gm else K <- 1/gm^(lambda-1)
+##   } else K <- 1
+##   ans <- z * K
+##   if(jacobian) ans <- list(z = ans, jacobian = (x + alpha)^(lambda - 1) * K)
+##   ans
+## }

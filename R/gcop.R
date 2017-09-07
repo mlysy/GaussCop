@@ -6,9 +6,18 @@
 #' @param gCop the \code{gcop} model specification.
 #' @param decomp logical; if TRUE returns the normalized residuals \code{Z}, their log-density \code{zlpdf}, and the log-jacobian \code{zljac}, such that the total log-density is \code{xldens = zldens + zljac}.  See details.
 #' @details The density of Gaussian Copula distribution is
-#' \deqn{\code{dgcop(X) = MVN(Z | Rho) * prod(f_i(X_i)) / prod(dnorm(Z_i))},}
-#' where MVN is the PDF of a multivariate normal with mean 0 and correlation \code{Rho}, \code{f_i(x_i)} are the marginal PDFs of the original data, \code{dnorm} is teh PDF of a standard normal, and \code{Z_i = qnorm(F_i(X_i))} is the normal quantile corresponding to \code{X_i}.
-#' @return A vector of densities or of random samples.
+#' \deqn{
+#' g(x) = \frac{\psi(z \mid \Rho) \prod_{i=1}^d f_i(x_i)}{\prod_{i=1}^d\phi(z_i)},
+#' }{
+#' g(x) = \psi(z | R) \prod_{i=1}^d f_i(x_i)/\phi(z_i),
+#' }
+#' \deqn{
+#' z_i = \Phi^{-1}(F_i(x_i)),
+#' }{
+#' z_i = \Phi^(-1)(F_i(x_i)),
+#' }
+#' where \eqn{\psi(z \mid \Rho)}{\psi(z | R)} is the PDF of a multivariate normal with mean 0 and variance \eqn{\Rho}{R}, \eqn{f_i(x_i)} and \eqn{F_i(x_i)} are the marginal PDF and CDF of variable \eqn{i}, and \eqn{\phi(z)} and \eqn{\Phi(z)} are the PDF and CDF of a standard normal.
+#' @return A vector of densities or matrix of random samples.
 
 #' @rdname gcop
 #' @export

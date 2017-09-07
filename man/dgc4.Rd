@@ -21,4 +21,3 @@ Vector of pdf or log(pdf).
 \description{
 Univariate 4th Order Gram-Charlier Density
 }
-

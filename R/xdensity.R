@@ -1,7 +1,7 @@
 #' Extend a Matrix Representation of a Density to an \code{xDens} Object
 #'
 #' @param XY 2-column matrix representation of a univariate density.  The first column is a grid of x values giving the centers of bins.   The second column are the corresponding densities.
-#' @param mean,sd mean and standard deviation of the normal to use outside the grid values in \code{XY}.
+#' @param mean,sd Optional mean and standard deviation of the normal to use outside the grid values in \code{XY}.  Defaults to grid-based approximation using \code{XY}.
 #' @return An \code{xDens} object.  See \code{\link{xDens}}.
 #' @export
 xdensity <- function(XY, mean, sd) {

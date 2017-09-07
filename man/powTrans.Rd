@@ -32,4 +32,3 @@ where \code{C} is the Geometric mean:
 \deqn{\code{C = exp(mean(log(x + alpha)))}.}
 Note that \code{C} is only calculated if \code{normalize = TRUE}.
 }
-

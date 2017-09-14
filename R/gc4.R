@@ -64,8 +64,8 @@ gc4XD <- function(x, lambda = NULL, alpha = 0, cmom = NULL, trim = .01,
     cmom <- cm
   }
   x <- seq(from, to, len = n)
-  z <- pow.trans(x - m + 1, lambda = lambda, alpha = alpha,
-                 jacobian = TRUE)
+  z <- powTrans(x - m + 1, lambda = lambda, alpha = alpha,
+                jacobian = TRUE)
   y <- dgc4(z$z, cmom = cmom, rm.neg = TRUE) * z$jacobian
   XY <- cbind(x = x*x.sd, y = y/x.sd)
   xdensity(XY = XY, mean = mean, sd = sd)

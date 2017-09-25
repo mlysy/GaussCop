@@ -11,8 +11,6 @@ Description: Provides a representation of a Gaussian Copula distribution to
     by kernel smoothing or a combined Box-Cox and Gram-Charlier approximation.
     Functions are also provided for density evaluation and random sampling.
 License: GPL 3
-Imports:
-    mvtnorm
 RoxygenNote: 6.0.1
 Suggests: knitr,
     rmarkdown

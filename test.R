@@ -152,6 +152,25 @@ curve(dnorm(x, mean = sum(mvc$Mu * aa),
             sd = sqrt(aa %*% mvc$V %*% aa)), col = "red", add = TRUE)
 
 
+# check internal multivariate normal functions
+
+require(mvtnorm)
+
+p <- sample(1:10, 1)
+n <- 10
+sigma <- crossprod(matrix(rnorm(p^2),p))
+
+# doesn't work due to chol pivoting
+set.seed(1)
+X1 <- rmvnorm(n, sigma = sigma, method = "chol", pre0.9_9994 = TRUE)
+set.seed(1)
+X2 <- .rmvn(n, sigma = sigma)
+range(X1 - X2)
+
+lp1 <- .lmvn(X1, sigma)
+lp2 <- dmvnorm(X1, sigma = sigma, log = TRUE)
+range(lp1-lp2)
+
 #--- scratch --------------------------------------------------------------------
 
 # ok.  let's do it bit by bit

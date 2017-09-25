@@ -1,0 +1,113 @@
+---
+title: "Univariate Distributions as `xDensity` Objects"
+author: "Martin Lysy, Jonathan Ramkissoon"
+date: "`r Sys.Date()`"
+output:
+  html_vignette:
+    toc: true
+bibliography: references.bib
+csl: taylor-and-francis-harvard-x.csl
+link-citations: true
+vignette: >
+  %\VignetteIndexEntry{GaussCop: Quick Tour}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, eval = FALSE, echo = FALSE}
+
+# R code to render vignette
+rmarkdown::render("GaussCop-quicktut.Rmd")
+
+```
+
+<!-- Latex commands -->
+\newcommand{\bm}[1]{\boldsymbol{#1}}
+\newcommand{\tx}[1]{\mathrm{#1}}
+\newcommand{\rv}[3][1]{#2_{#1},\ldots,#2_{#3}}
+\newcommand{\XX}{{\bm X}}
+\newcommand{\xx}{{\bm x}}
+\newcommand{\uu}{{\bm u}}
+\newcommand{\iid}{\stackrel{\mathrm{iid}}{\sim}}
+
+## Introduction
+
+The **`xDensity`** package proposes a simple, unified framework to provide the basic `d/p/q/r` functions for arbitrary continuous one-dimensional distributions.  This can be useful for working with Copula models, a simple example of which is given below.
+
+## `xDensity` Objects
+
+Let $X$ denote an unbounded, continuous random variable with PDF $X \sim f(x)$.  An `xDensity` object essentially consists of the following elements:
+
+ - PDF values on an evenly-spaced grid
+ - The mean and standard deviation of a Normal distribution to be used outside the grid.
+ 
+ Based on this representation, the `d`/`p`/`q`/`r` functions are implemented as follows:
+ 
+ - *PDF* (`d`): Step function inside the grid, Normal outside the grid.
+ - *CDF* (`p`): Piecewise linear inside the grid, Normal outside the grid.
+ - *Inverse-CDF* (`q`): Exact numerical inversion of CDF
+ - *Sampling* (`r`): Inverse-CDF method.  That is, if $F(x)$ is a CDF and $U \sim \tx{Unif}(0,1)$, then $X = F^{-1}(U)$ has CDF $F(x)$.
+ 
+### Basic Usage
+
+Typically `xDensity` objects are created from a non-parametric estimate of $f(x)$ obtained from a random sample $\rv X n \iid f(x)$.  For example, consider the following `xDensity` representation of a log-Exponential distribution $f(x) = \exp(-e^x + x)$:
+```{r}
+require(GaussCop)
+nsamples <- 1e5
+X <- log(rexp(nsamples)) # iid samples from the log-Exponential
+xDens <- kernelXD(X) # simplest constructor
+names(xDens)
+```
+The elements `ndens`, `xrng` contain the number of grid points and the range of the grid, `ypdf` contains the density at the grid midpoint, and `mean` and `sd` contain the PDF of the Normal outside the grid.  In addition, `ylpdf` and `ycdf` contain the log-density and CDF on the grid, which are precomputed to speed up subsequent calculations.
+
+Some of the `d/p/q/r` functions are illustrated with the following code:
+```{r, fig.width = 10, fig.height = 4, out.width = "90%"}
+par(mfrow = c(1,2), mar = c(4,4,2,.5)+.1)
+
+# pdf and sampling check
+dlexp <- function(x) exp(-exp(x) + x) # true PDF
+Xsim <- rXD(nsamples, xDens = xDens) # xDensity: random sampling
+hist(Xsim, breaks = 100, freq = FALSE,
+     xlab = "x", main = "PDF")
+curve(dXD(x, xDens = xDens), add = TRUE, col = "red") # xDensity PDF
+curve(dlexp, add = TRUE, col = "blue") # true PDF
+abline(v = xDens$xrng, lty = 2) # grid endpoints
+legend("topleft", c("rXD", "dXD", "dlexp", "xRange"),
+       pch = c(22,22,22,NA), pt.cex = 1.5,
+       pt.bg = c("white", "red", "blue", "black"),
+       lty = c(NA, NA, NA, 2))
+
+# cdf check
+plexp <- function(x) pexp(exp(x)) # true CDF
+curve(pXD(x, xDens), # xDensity CDF
+      from = min(Xsim), to = max(Xsim), col = "red",
+      xlab = "x", main = "CDF", ylab = "Cumulative Probability")
+curve(plexp, add = TRUE, col = "blue") # true CDF
+abline(v = xDens$xrng, lty = 2) # grid endpoints
+legend("topleft", c("pXD", "plexp", "xRange"),
+       pch = c(22,22,NA), pt.cex = 1.5,
+       pt.bg = c("red", "blue", "black"),
+       lty = c(NA, NA, 2))
+```
+
+## Constructors
+
+### Kernel Density Estimation
+
+### Gram-Charlier Expansion
+
+### Known PDF Function
+
+## Example: The Gaussian Copula Distribution
+
+Consider a $d$-dimensional random variable $\XX = (\rv X d)$ with unknown PDF $\XX \sim f(\xx)$.  A popular approach to statistical dependence modeling is to do so upon transforming $\XX$ to having univariate margins.  That is, if $F_i(x_i)$ is the CDF of $X_i$, then
+$$
+U_i = F_i^{-1}(X_i) \sim \tx{Unif}(0,1),
+$$
+such that the joint PDF of $\XX$ can be written as [*get density right*]
+$$
+f(\xx) = c(\uu), \qquad u_i = F_i^{-1}(x_i)
+$$
+Thus, $c(\uu)$ is the joint PDF of marginally Uniform random variables and is known as a Copula distribution.  Numerous **R** packages provide various methods for fitting and sampling from Copula distributions, e.g., [**`copula`**](https://CRAN.R-project.org/package=copula) [@hofert.etal17],  [**`VineCopula`**](https://CRAN.R-project.org/package=VineCopula) [@schepsmeier.etal17], and many others listed in the [**`Distributions`**](https://CRAN.R-project.org/view=Distributions) Task View.    
+
+## References

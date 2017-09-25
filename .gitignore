@@ -4,10 +4,9 @@
 *.o
 *.so
 *.dll
-
 # R
 *.Rhistory
 *.Rapp.history
-
+inst/doc
 # osx
 *.DS_Store

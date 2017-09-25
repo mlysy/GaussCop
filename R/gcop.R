@@ -43,7 +43,7 @@ dgcop <- function(X, gCop, log = FALSE, decomp = FALSE) {
   # normalized quantiles
   Z <- qnorm(FF)
   Z <- pmax(pmin(Z, maxZ), -maxZ) # truncate to reasonable range
-  zlpdf <- dmvnorm(Z, sigma = gCop$Rho, log = TRUE)
+  zlpdf <- .lmvn(Z, sigma = gCop$Rho)
   zljac <- rowSums(lf - dnorm(Z, log = TRUE))
   # zljac <- rowSums(lf) - dmvnorm(Z, sigma = diag(nrv), log = TRUE)
   if(decomp) {
@@ -60,7 +60,7 @@ rgcop <- function(n, gCop) {
   if(class(gCop) != "gcop") stop("gCop must be a gcop object.")
   # simulate correlated uniforms
   nrv <- length(gCop$XDens)
-  U <- pnorm(rmvnorm(n, sigma = gCop$Rho))
+  U <- pnorm(.rmvn(n, sigma = gCop$Rho))
   # invert cdfs to obtain marginals
   X <- matrix(NA, n, nrv)
   colnames(X) <- names(gCop$XDens)

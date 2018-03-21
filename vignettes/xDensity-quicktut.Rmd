@@ -1,5 +1,5 @@
 ---
-title: "Univariate Distributions as `xDens` Objects"
+title: "Univariate Distributions as `xDensity` Objects"
 author: "Martin Lysy, Jonathan Ramkissoon"
 date: "`r Sys.Date()`"
 output:
@@ -27,16 +27,23 @@ rmarkdown::render("xDensity-quicktut.Rmd")
 \newcommand{\rv}[3][1]{#2_{#1},\ldots,#2_{#3}}
 \newcommand{\XX}{{\bm X}}
 \newcommand{\xx}{{\bm x}}
+\newcommand{\zz}{{\bm z}}
+\newcommand{\ZZ}{{\bm Z}}
 \newcommand{\uu}{{\bm u}}
+\newcommand{\RR}{{\bm R}}
+\newcommand{\II}{{\bm I}}
+\newcommand{\ud}{\,\mathrm{d}}
 \newcommand{\iid}{\stackrel{\mathrm{iid}}{\sim}}
+\newcommand{\argmin}{\mathrm{argmin}}
+\newcommand{\N}{{\mathcal N}}
 
 ## Introduction
 
 The **`GaussCop`** package proposes a simple, unified framework to provide the basic `d/p/q/r` functions for arbitrary continuous one-dimensional distributions.  This can be useful for working with various Copula models (including the Gaussian Copula). 
 
-### `xDens` Objects
+### `xDensity` Objects
 
-Let $X$ denote an unbounded, continuous random variable with PDF $X \sim f(x)$.  An `xDens` object essentially consists of the following elements:
+Let $X$ denote an unbounded, continuous random variable with PDF $X \sim f(x)$.  An `xDensity` object essentially consists of the following elements:
 
  - PDF values on an evenly-spaced grid.
  - The mean and standard deviation of a Normal distribution to be used outside the grid.
@@ -55,9 +62,9 @@ Let $X$ denote an unbounded, continuous random variable with PDF $X \sim f(x)$. 
 
 ```
 
-`xDens` objects  can be constructed either from iid samples $\rv X n \iid f(x)$ or from a functional representation of $f(x)$ itself.  
+`xDensity` objects  can be constructed either from iid samples $\rv X n \iid f(x)$ or from a functional representation of $f(x)$ itself.  
 <!-- are created from a non-parametric estimate of $f(x)$ obtained from a random sample $\rv X n \iid f(x)$.   -->
-For example, consider the following `xDens` representation based on a random sample from the log-Exponential distribution,
+For example, consider the following `xDensity` representation based on a random sample from the log-Exponential distribution,
 $$
 \log(X) \sim \tx{Expo}(1) \qquad \iff \qquad f(x) = \exp(-e^x + x).
 $$
@@ -68,7 +75,7 @@ require(GaussCop) # load package
 nsamples <- 1e5
 X <- log(rexp(nsamples)) # iid samples from the log-Exponential
 
-xDens <- kernelXD(X) # basic xDens constructor
+xDens <- kernelXD(X) # basic xDensity constructor
 names(xDens)
 ```
 The elements of `xDens` are:
@@ -79,11 +86,11 @@ The elements of `xDens` are:
 <!-- contains the density at the grid midpoint, and `mean` and `sd` contain the PDF of the Normal outside the grid.  In addition, `ylpdf` and `ycdf` contain the log-density and CDF on the grid, which are precomputed to speed up subsequent calculations. -->
 
 The `d/p/q/r` functions for `xDensity` objects are invoked by e.g., `dXD(x, xDens = xDens, log = TRUE)` as seen in the [Appendix](#apptest) **R** code for the test function `xdens_test`.
-<!-- First we create a generic function to compare a true distribution to its `xDens` representation: -->
+<!-- First we create a generic function to compare a true distribution to its `xDensity` representation: -->
 ```{r xdens_test, echo = FALSE}
-# check that xDens d/p/q/r functions match the true distribution,
-# by plotting true PDF/CDF vs xDens representation.
-# xDens: xDens object.
+# check that xDensity d/p/q/r functions match the true distribution,
+# by plotting true PDF/CDF vs xDensity representation.
+# xDens: xDensity object.
 # dtrue/ptrue: single-variable function of the true pdf/cdf.
 # dname: name of true distribution (for legend)
 # dlpos, plpos: legend position for pdf/cdf plot.
@@ -92,13 +99,13 @@ xdens_test <- function(xDens, dtrue, ptrue, dname, dlpos, plpos) {
   par(mfrow = c(1,2), mar = c(4,4,2,.5)+.1)
   # pdf and sampling check
   nsamples <- 1e5
-  Xsim <- rXD(nsamples, xDens = xDens) # xDens: random sampling
+  Xsim <- rXD(nsamples, xDens = xDens) # xDensity: random sampling
   # extend xDens range to show endpoint matching
   xlim <- xDens$xrng
   xlim <- (xlim - mean(xlim)) * 1.10 + mean(xlim)
-  hist(Xsim, breaks = 100, freq = FALSE, # xDens random sample
+  hist(Xsim, breaks = 100, freq = FALSE, # xDensity random sample
        xlab = "x", main = "PDF", xlim = xlim)
-  curve(dXD(x, xDens = xDens), add = TRUE, col = "red") # xDens PDF
+  curve(dXD(x, xDens = xDens), add = TRUE, col = "red") # xDensity PDF
   curve(dtrue, add = TRUE, col = "blue") # true PDF
   abline(v = xDens$xrng, lty = 2) # grid endpoints
   legend(dlpos, parse(text = c(dname, "dXD", "rXD", "xrng")),
@@ -106,7 +113,7 @@ xdens_test <- function(xDens, dtrue, ptrue, dname, dlpos, plpos) {
          pt.bg = c("blue", "red", "white", "black"),
          lty = c(NA, NA, NA, 2))
   # cdf check
-  curve(pXD(x, xDens), # xDens CDF
+  curve(pXD(x, xDens), # xDensity CDF
         from = xlim[1], to = xlim[2], col = "red",
         xlab = "x", main = "CDF", ylab = "Cumulative Probability")
   curve(ptrue, add = TRUE, col = "blue") # true CDF
@@ -124,9 +131,10 @@ That is, consider the following graphical check of an `xDensity` approximation t
 2. Check that `pXD` matches true CDF.
 
 These graphical tests are implemented by `xdens_test` as illustrated below:
-```{r, fig.width = 10, fig.height = 4, out.width = "97%", fig.cap = "Accuracy test for `xDens` approximation of `d/p/q/r` functions."}
-# check that xDens d/p/q/r functions match the true distribution,
-# by plotting true PDF/CDF vs xDens representation.
+```{r, fig.width = 10, fig.height = 4, out.width = "97%", echo = -1}
+#, fig.cap = "Accuracy test for `xDensity` approximation of `d/p/q/r` functions."}
+# check that xDensity d/p/q/r functions match the true distribution,
+# by plotting true PDF/CDF vs xDensity representation.
 
 dlexp <- function(x) exp(-exp(x) + x) # true PDF
 plexp <- function(x) pexp(exp(x)) # true CDF
@@ -140,12 +148,9 @@ xdens_test(xDens, # xDensity approximation
 ```
 
 
-## Constructors
+## Constructors for `xDensity` Objects
 
-Power Transform:
-$$z = \begin{array}{rl} \frac{((x + \alpha)^\lambda - 1)}{(\lambda C^{\lambda-1})} & \lambda \neq 0 \\ C \log(x + \alpha) & \lambda = 0, \end{array}$$
-
-`xDens` objects can be constructed using three methods: two involving density estimation of random sample from $f(x)$, and one from a functional approximation to $f(x)$, e.g., using a parametric family $f(x \mid \hat {\bm \theta})$, where $\hat{\bm \theta}$ is the parameter MLE.  
+Package **`GaussCop`** currently implements three methods of constructing `xDensity` objects: two involve density estimation of a random sample $\rv X n \sim f(x)$, and the third, a functional approximation $\hat f(x)$, e.g., using a parametric model $f(x \mid \hat {\bm \theta})$, where $\hat{\bm \theta}$ is the parameter MLE.  
 <!-- These methods are discussed and compared using the true distribution $X \sim \chi^2_{(4)}$. -->
 
 <!-- approximate densities using one of 3 methods: kernel density estimation, Gram-Charlier expansion or by using known a known sample-density matrix. These are discussed and compared using the $\chi^2_{(5)}$ distribution. An endpoint matching technique is used to describe the tails of the approximated densities with a Normal distribution. More about this can be found in [Appendix A: Endpoint Matching]. -->
@@ -167,7 +172,7 @@ dname <- paste0("X%~%chi[(",df_true,")]^2")
 # simulate data
 nsamples <- 1e3
 X <- rtrue(nsamples)
-xDens <- kernelXD(X) # xDens constructor
+xDens <- kernelXD(X) # xDensity constructor
 
 par(oma = c(0,2,0,0)) # put sample size in outer margin
 xdens_test(xDens, dtrue = dtrue, ptrue = ptrue,
@@ -191,12 +196,18 @@ par(oma = c(0,0,0,0)) # remove outer margin
 
 ### Gram-Charlier Expansion
 
-The `gc4XD` constructor is a moment-based density estimator, ideal for unimodal distributions to be estimated from small sample sizes.  The estimator first applies a Box-Cox transformation to the data, then fits it with a 4th order  [Gram-Charlier expansion](https://en.wikipedia.org/wiki/Edgeworth_series) [e.g., @draper.tierney72].  The example below illustrates the approximation for $M = 1000$ observations of $X \sim \chi^2_{(4)}$.
+The `gc4XD` constructor implements a moment-based density approximation, which works best for unimodal distributions that are not too far from normal.
 
-```{r, fig.width = 10, fig.height = 4, out.width = "97%"}
+The estimator first applies a Box-Cox transformation to each observation $X_i$,
+$$Z_i = \tx{BoxCox}(X_i), \qquad \tx{BoxCox}(x) = \begin{cases} \frac{((x + \alpha)^\lambda - 1)}{(\lambda C^{\lambda-1})} & \lambda \neq 0 \\ C \log(x + \alpha) & \lambda = 0, \end{cases}
+$$
+then fits $\rv Z n$ with a 4th order  [Gram-Charlier expansion](https://en.wikipedia.org/wiki/Edgeworth_series) [e.g., @draper.tierney72].  The example below illustrates the approximation for $M = 1000$ observations of $X \sim \chi^2_{(4)}$.
+
+```{r, echo = -1, fig.width = 10, fig.height = 4, out.width = "97%"}
+set.seed(1) # reproducible results
 nsamples <- 1e3
 X <- rtrue(nsamples)
-xDens <- gc4XD(X) # xDens constructor
+xDens <- gc4XD(X) # xDensity constructor
 xdens_test(xDens, dtrue = dtrue, ptrue = ptrue,
            dname = dname,
            dlpos = "topright", plpos = "bottomright")
@@ -205,39 +216,108 @@ xdens_test(xDens, dtrue = dtrue, ptrue = ptrue,
 
 ### Known Density Values
 
-The `matrixXD` is used to convert functional density representations into the standardized `xDens` format. Its input is a 2-column matrix with equally-spaced $x$-grid values in the first column and corresponding density values in the second. 
+The `matrixXD` is used to convert functional density representations into the standardized `xDensity` format. Its input is a 2-column matrix with equally-spaced $x$-grid values in the first column and corresponding density values in the second. 
 <!-- It essentially appends Normally distributed tails to a grid of known PDF densities.  -->
 <!-- Currently, this function does not accept zero-valued grid density endpoints.  -->
-Below is an illustration using the Cauchy distribution.
+Below is an illustration using the Student-$t$ distributions $X \sim t_{(2)}$ and $X \sim t_{(1)}$ (i.e., Cauchy) distributions. We can see that for extremely heavy-tailed distributions such as Cauchy, the normal approximation used by `xDensity` clearly undercuts tail probabilities.
 
-```{r, fig.width = 10, fig.height = 4, out.width = "97%"}
-# true distribution: Cauchy
-dtrue <- function(x) dcauchy(x)
-ptrue <- function(x) pcauchy(x)
-dname <- expression(X%~%"Cauchy")
+```{r, fig.width = 10, fig.height = 4, out.width = "97%", fig.show = "hold"}
+# true distribution: t(2)
+dtrue <- list(t2 = function(x) dt(x, df = 2),
+              Cauchy = function(x) dt(x, df = 1))
+ptrue <- list(t2 = function(x) pt(x, df = 2),
+              Cauchy = function(x) pt(x, df = 1))
+dname <- expression(X%~%t[(2)], X%~%"Cauchy")
 
 # matrix density representation
 xgrid <- seq(from=-15, to=15, len = 500) # grid
-ypdf <- dtrue(xgrid)
-xDens <- matrixXD(cbind(X = xgrid, Y = ypdf)) # xDens constructor
+for(ii in 1:2) {
+  ypdf <- dtrue[[ii]](xgrid) # true density
+  xDens <- matrixXD(cbind(X = xgrid, Y = ypdf)) # xDensity constructor
+  xdens_test(xDens, dtrue = dtrue[[ii]], ptrue = ptrue[[ii]],
+             dname = dname[ii],
+             dlpos = "topright", plpos = "bottomright")
+}
 
-xdens_test(xDens, dtrue = dtrue, ptrue = ptrue,
-           dname = dname,
-           dlpos = "topright", plpos = "bottomright")
 
 ```
 
-## Example: The Gaussian Copula Distribution
+
+## Application: The Gaussian Copula Distribution
 
 Consider a $d$-dimensional random variable $\XX = (\rv X d)$ with unknown PDF $\XX \sim f(\xx)$.  A popular approach to statistical dependence modeling is to do so upon transforming $\XX$ to having univariate margins.  That is, if $F_i(x_i)$ is the CDF of $X_i$, then
 $$
 U_i = F_i^{-1}(X_i) \sim \tx{Unif}(0,1),
 $$
-such that the joint PDF of $\XX$ can be written as [*get density right*]
+such that the joint PDF of $\XX$ can be written as
 $$
-f(\xx) = c(\uu), \qquad u_i = F_i^{-1}(x_i)
+f(\xx) = c(\uu) \times\prod_{i=1}^n f_i(x_i), \qquad u_i = F_i(x_i).
 $$
-Thus, $c(\uu)$ is the joint PDF of marginally Uniform random variables and is known as a Copula distribution.  Numerous **R** packages provide various methods for fitting and sampling from Copula distributions, e.g., [**`copula`**](https://CRAN.R-project.org/package=copula) [@hofert.etal17],  [**`VineCopula`**](https://CRAN.R-project.org/package=VineCopula) [@schepsmeier.etal17], and many others listed in the [**`Distributions`**](https://CRAN.R-project.org/view=Distributions) Task View.    
+Thus, $c(\uu)$ is the joint PDF of marginally Uniform random variables, $U_i \sim \tx{Unif}(0,1)$, and is known as a [Copula distribution](https://en.wikipedia.org/wiki/Copula_(probability_theory)).  Numerous **R** packages provide various for fitting and sampling from Copula distributions, e.g., [**`copula`**](https://CRAN.R-project.org/package=copula) [@hofert.etal17],  [**`VineCopula`**](https://CRAN.R-project.org/package=VineCopula) [@schepsmeier.etal17], and many others listed in the [**`Distributions`**](https://CRAN.R-project.org/view=Distributions) Task View.  The `xDensity` methods for modeling the marginal distributions $f_i(x_i)$ can easily be combined with the Copula dependence models $c(\uu)$ provided by these packages.  `GaussCop` provides a simple and specific interface to the so-called Gaussian Copula distribution, which approximates the true $c(\uu)$ as follows:
+
+1. Let $\varphi(z)$ and $\Phi(z)$ denote the PDF and CDF of the standard normal $\N(0,1)$.  Now, consider the change-of-variables $Z_i = \Phi^{-1}(U_i)$, for which the joint PDF of $\ZZ = (\rv Z n)$ is
+$$
+g(\zz) = c(\uu) \times \prod_{i=1}^n \varphi(z_i), \qquad u_i = \Phi(z_i).
+$$
+2.  Since marginally $Z_i \sim \N(0,1)$, the Gaussian Copula approximates the true distirbution $g(\zz)$ by the best-match multivariate normal in the sense of minimizing the [Kullback-Leibler divergence](https://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence),
+$$
+\hat g(\zz) = \argmin_{\RR} \int \log \left[\frac{g(\zz)}{\varphi(\zz \mid \RR)}\right] \cdot g(\zz) \ud \zz,
+$$
+where $\varphi(\zz \mid \RR)$ is the joint PDF of a multivariate normal $\N(0, \RR)$ with correlation matrix $\RR_{ii} = 1$.
+
+To evaluate the accuracy of the Gaussian Copula appromation, consider applying it to the 3-dimensional Cholesky decomposition of a $2\times 2$ unit [Wishart distribution](),
+$$
+\XX_{2\times 2} \sim \tx{Wishart}(\II, 1),
+$$
+where $\XX = \ZZ'\ZZ$ and $\ZZ$ is a $2\times 2$ matrix of iid $\N(0,1)$.  By construction, the Gaussian Copula perfectly captures the marginal distributions of $\tx{chol}(\XX)$.  Therefore, consider the error on the marginal distributions of the eigenvalues of $\XX$, induced by approximating the copula dependence between the Cholesky variables as multivariate normal.  In this case, the error appears to be relatively small:
+```{r, fig.width = 10, fig.height = 4, out.width = "97%", fig.show="hold", cache = TRUE}
+# simulate data from unit Wishart distribution
+nsamples <- 1e5
+X <- replicate(nsamples, crossprod(matrix(rnorm(4),2,2)))
+
+# Cholesky decomposition
+Xchol <- apply(X, 3, function(V) chol(V)[upper.tri(V,diag = TRUE)]) 
+Xchol <- t(Xchol)
+
+# fit Gaussian Copula approximation
+gCop <- gcopFit(X = Xchol, # iid sample from multivariate distribution
+                fitXD = "kernel") # xDensity approximation to each margin
+
+# Compare approximation to true distribution of eigenvalues of X
+# eigenvalues of 2x2 matrix
+eig22 <- function(V) {
+  c1 <- V[1,1] + V[2,2] # trace
+  c2 <- V[1,1]*V[2,2] - V[1,2]^2 # determinant
+  c2 <- sqrt(.25 * c1^2 - c2)
+  c(.5 * c1 + c2, .5 * c1 - c2)
+}
+
+Xeig <- t(apply(X, 3, eig22)) # true distribution
+Xeig2 <- rgcop(nsamples, gCop = gCop) # Gaussian Copula approximation
+Xeig2 <- t(apply(Xeig2, 1, function(U) {
+  # recover full matrix
+  V <- matrix(0,2,2)
+  V[upper.tri(V,diag=TRUE)] <- U
+  V <- crossprod(V)
+  eig22(V)
+}))
+main = expression(lambda[1],lambda[2])
+
+par(mfrow = c(1,2), mar = c(2.5,2.5,2,.1)+.1, oma = c(0,2,0,0))
+for(ii in 1:2) {
+  dtrue <- density(Xeig[,ii])
+  dapprox <- density(Xeig2[,ii])
+  xlim <- range(dtrue$x, dapprox$x)
+  ylim <- range(dtrue$y, dapprox$y)
+  plot(dtrue$x, dtrue$y, type = "l", xlim = xlim, ylim = ylim,
+       main = main[ii], xlab = "", ylab = "")
+  lines(dapprox$x, dapprox$y, col = "red")
+}
+mtext(text = "Density",
+      side = 2, line = .5, outer = TRUE)
+par(oma = c(0,0,0,0)) # remove outer margin
+
+```
 
 ## Appendix A: Endpoint Matching {#appendix}
 
@@ -270,7 +350,8 @@ $$
 Since $g(\tau) \to \infty$ for $\tau \to 0$ and $\tau \to \infty$, we conclude that $\tau_L$ is the minimum value of $g(\tau)$ on $\tau \in (0,\infty)$.  Let us now find a value $\tau_U < \tau_L$ at which $g(\tau_U) > 0$ (doing this for $\tau_U > \tau_L$ is likely to have $\mu$ outside of $(x_1, x_2)$).
 
 In order to find a lower bound for the root, note that for $0 < \tau < A^2/2$, we have 
-$$\log \tau > -\frac{A^2/2}{\tau} + D, \qquad D = 1 + \log(A^2/2).
+$$
+\log \tau > -\frac{A^2/2}{\tau} + D, \qquad D = 1 + \log(A^2/2).
 $$
 This is because the derivative of the RHS is larger than that of the LHS for $\tau < A^2/2$, thus falls to $-\infty$ monotonically faster as $\tau \to 0$.  The value of $D$ is chosen such that LHS and RHS are equal at $\tau = A^2/2$.  Substituting the inequality above into the root-finding equation, we obtain
 $$

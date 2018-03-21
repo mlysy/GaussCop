@@ -10,3 +10,5 @@
 inst/doc
 # osx
 *.DS_Store
+vignettes/xDensity-quicktut_files
+vignettes/xDensity-quicktut_cache

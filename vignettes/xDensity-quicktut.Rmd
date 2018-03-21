@@ -78,8 +78,9 @@ The elements of `xDens` are:
 - `mean`, `sd`: The mean and variance of the Normal distribution used outside the range of the grid.  By default, these values are chosen by matching the Normal PDF to the `ypdf` values at then endpoints of the grid; details of the calculation can be found in the [Appendix](#appendix) .
 <!-- contains the density at the grid midpoint, and `mean` and `sd` contain the PDF of the Normal outside the grid.  In addition, `ylpdf` and `ycdf` contain the log-density and CDF on the grid, which are precomputed to speed up subsequent calculations. -->
 
-Use of the `d/p/q/r` functions are illustrated with the following code.  First we create a generic function to compare a true distribution to its `xDens` representation:
-```{r}
+The `d/p/q/r` functions for `xDensity` objects are invoked by e.g., `dXD(x, xDens = xDens, log = TRUE)` as seen in the [Appendix](#apptest) **R** code for the test function `xdens_test`.
+<!-- First we create a generic function to compare a true distribution to its `xDens` representation: -->
+```{r xdens_test, echo = FALSE}
 # check that xDens d/p/q/r functions match the true distribution,
 # by plotting true PDF/CDF vs xDens representation.
 # xDens: xDens object.
@@ -117,15 +118,27 @@ xdens_test <- function(xDens, dtrue, ptrue, dname, dlpos, plpos) {
   invisible(par(op))
 }
 ```
-Now we can check the accuracy of the `xDens` approximation to the log-Exponential distribution:
-```{r, fig.width = 10, fig.height = 4, out.width = "97%"}
+That is, consider the following graphical check of an `xDensity` approximation to the log-Exponential distribution $\log(X) \sim \tx{Expo}(1)$:
+
+1. Check that histogram of `rXD` sample matches `dXD` and the true PDF (recall that `rXD` calls `qXD` on `runif`).
+2. Check that `pXD` matches true CDF.
+
+These graphical tests are implemented by `xdens_test` as illustrated below:
+```{r, fig.width = 10, fig.height = 4, out.width = "97%", fig.cap = "Accuracy test for `xDens` approximation of `d/p/q/r` functions."}
+# check that xDens d/p/q/r functions match the true distribution,
+# by plotting true PDF/CDF vs xDens representation.
+
 dlexp <- function(x) exp(-exp(x) + x) # true PDF
 plexp <- function(x) pexp(exp(x)) # true CDF
-xdens_test(xDens, dtrue = dlexp, ptrue = plexp,
-           dname = expression(log(X)%~%"Expo"*(1)),
-           dlpos = "topleft", plpos = "topleft")
+
+xdens_test(xDens, # xDensity approximation 
+           dtrue = dlexp, # true PDF 
+           ptrue = plexp, # true CDF
+           dname = expression(log(X)%~%"Expo"*(1)), # name of true distribution (for legend)
+           dlpos = "topleft", plpos = "topleft") # legend position for pdf/cdf plot
 
 ```
+
 
 ## Constructors
 
@@ -266,6 +279,11 @@ $$
 such that $g(\tau) > 0$ for $\tau < \frac{A^2}{2(C-D)}$.
 
 Note that when $y_1 = y_2$, the endpoint matching method breaks down and the mean and standard deviation of the approximated density is used for the Normally distributed tails.
+
+## Appendix B: Code For Test Function `xdens_test` {#apptest}
+
+```{r, ref.label = "xdens_test", eval = FALSE}
+```
 
 ## References
 

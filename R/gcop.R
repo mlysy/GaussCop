@@ -1,13 +1,14 @@
-#' The Gaussian Copula Distribution.
-#'
+#' @title The Gaussian Copula distribution.
+#' @description The \code{gcop} class provides functions for the density and simulation 
+#' from the Gaussian Copula distribution. A \code{gcop} model is fit using the \code{gcopFit} function.
 #' @name gcop
 #' @param X \code{n x p} values at which to evaluate the \code{p}-dimensional density.
-#' @param n number of random samples to draw.
-#' @param gCop the \code{gcop} model specification.
-#' @param decomp logical; if TRUE returns the normalized residuals \code{Z}, their log-density \code{zlpdf}, and the log-jacobian \code{zljac}, such that the total log-density is \code{xldens = zldens + zljac}.  See details.
+#' @param n Number of random samples to draw.
+#' @param gCop The \code{gcop} model specification.
+#' @param decomp Logical; if TRUE returns the normalized residuals \code{Z}, their log-density \code{zlpdf}, and the log-jacobian \code{zljac}, such that the total log-density is \code{xldens = zldens + zljac}.  See details.
 #' @details The density of Gaussian Copula distribution is
 #' \deqn{
-#' g(x) = \frac{\psi(z \mid \Rho) \prod_{i=1}^d f_i(x_i)}{\prod_{i=1}^d\phi(z_i)},
+#' g(x) = \frac{\psi(z \mid R) \prod_{i=1}^d f_i(x_i)}{\prod_{i=1}^d\phi(z_i)},
 #' }{
 #' g(x) = \psi(z | R) \prod_{i=1}^d f_i(x_i)/\phi(z_i),
 #' }
@@ -16,9 +17,19 @@
 #' }{
 #' z_i = \Phi^(-1)(F_i(x_i)),
 #' }
-#' where \eqn{\psi(z \mid \Rho)}{\psi(z | R)} is the PDF of a multivariate normal with mean 0 and variance \eqn{\Rho}{R}, \eqn{f_i(x_i)} and \eqn{F_i(x_i)} are the marginal PDF and CDF of variable \eqn{i}, and \eqn{\phi(z)} and \eqn{\Phi(z)} are the PDF and CDF of a standard normal.
-#' @return A vector of densities or matrix of random samples.
-
+#' where \eqn{\psi(z \mid R)}{\psi(z | R)} is the PDF of a multivariate normal with mean 0 and variance \eqn{R}{R}, \eqn{f_i(x_i)} and \eqn{F_i(x_i)} are the marginal PDF and CDF of variable \eqn{i}, and \eqn{\phi(z)} and \eqn{\Phi(z)} are the PDF and CDF of a standard normal.
+#' @return \code{dgcop} provides the density of \code{gCop}, \code{rgcop} generates random values from \code{gCop}.
+#' @examples
+#' # simulate data and plot it 
+#' n = 5e4
+#' dat = cbind(rnorm(n, mean = 1, sd = 3),
+#'             rnorm(n, mean=4, sd = 0.5))
+#' plot(dat, cex=0.5)
+#' # fit Gaussian Copula
+#' temp.cop = gcopFit(X = dat, fitXD = "kernel")
+#' # simulate data from Copula model and add it to plot, should blend in
+#' new.data = rgcop(100, temp.cop) 
+#' points(new.data, cex = 0.5, col="red")
 #' @rdname gcop
 #' @export
 dgcop <- function(X, gCop, log = FALSE, decomp = FALSE) {

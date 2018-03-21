@@ -2,22 +2,36 @@
 % Please edit documentation in R/gc4.R
 \name{dgc4}
 \alias{dgc4}
-\title{Univariate 4th Order Gram-Charlier Density}
+\title{Univariate 4th-order Gram-Charlier density approximation.}
 \usage{
-dgc4(x, cmom, rm.neg = TRUE, log = FALSE, debug = FALSE)
+dgc4(x, cmom, rm.neg = TRUE, log = FALSE)
 }
 \arguments{
-\item{x}{vector of density quantiles.}
+\item{x}{Vector of density quantiles.}
 
-\item{cmom}{vector of first 4 central moments of distribution}
+\item{cmom}{Vector of first 4 central moments of distribution.}
 
-\item{rm.neg}{logical; if TRUE clips the density at smallest calculated non-negative value.}
+\item{rm.neg}{Logical; if TRUE clips the density at smallest calculated non-negative value.}
 
-\item{log}{logical; if TRUE returns approximating density on log scale.}
+\item{log}{Logical; if TRUE returns approximating density on log scale.}
 }
 \value{
 Vector of pdf or log(pdf).
 }
 \description{
-Univariate 4th Order Gram-Charlier Density
+Univariate 4th-order Gram-Charlier density approximation.
+}
+\examples{
+require(moments) # for finding moments
+df = 3
+nsamples <- 100
+X <- rnorm(nsamples, df=df) # iid samples from the Chi-Sq(df)
+
+cm <- mean(X)
+cm <- c(cm, moment(X, order = 2),
+        moment(X, order = 3),
+        moment(X, order = 4))
+cmom <- cm
+
+dgc4(X, cmom = cmom, rm.neg = TRUE) 
 }

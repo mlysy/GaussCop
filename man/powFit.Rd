@@ -2,9 +2,9 @@
 % Please edit documentation in R/powFit.R
 \name{powFit}
 \alias{powFit}
-\title{Maximum Likelihood Estimate of the Generalized Power Transform.}
+\title{Maximum likelihood estimate of the generalized Box-Cox transform.}
 \usage{
-powFit(x, alpha = NA, interval = c(-5, 5), ..., debug = FALSE)
+powFit(x, alpha = NA, interval = c(-5, 5), ...)
 }
 \arguments{
 \item{x}{Vector of samples from density.}
@@ -19,10 +19,10 @@ powFit(x, alpha = NA, interval = c(-5, 5), ..., debug = FALSE)
 MLEs for \code{lambda} and possibly \code{alpha} as well.
 }
 \description{
-Maximum Likelihood Estimate of the Generalized Power Transform.
+Maximum likelihood estimate of the generalized Box-Cox transform.
 }
 \details{
 The likelihood for optimization is
-\deqn{\code{L(lambda, alpha | x) = prod(dnorm(z(x | lambda, alpha)) *  |dz(x | lambda, alpha) / dx|)},}
+\preformatted{L(lambda, alpha | x) = prod(dnorm(z(x | lambda, alpha)) *  |dz(x | lambda, alpha) / dx|)},
 where \code{z(x | lambda, alpha)} is the Box-Cox transformation.
 }

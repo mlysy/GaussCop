@@ -2,22 +2,40 @@
 % Please edit documentation in R/rgcopCond.R
 \name{rgcopCond}
 \alias{rgcopCond}
-\title{Simulation of a Gaussian Copula with Conditioning.}
+\title{Conditional simulation from a Gaussian Copula distribution.}
 \usage{
-rgcopCond(n, gCop, XCond, iCond, debug = FALSE)
+rgcopCond(n, gCop, XCond, iCond)
 }
 \arguments{
-\item{n}{Integer number of random draws}
+\item{n}{Integer number of random draws.}
 
 \item{gCop}{An object of class \code{gcop} describing the joint Gaussian Copula distribution on all variables.}
 
 \item{XCond}{Vector or matrix; values of the variables on which to condition.}
 
-\item{iCond}{Vector of integers, logicals, or characters specifying which are the random variables on which to condition.}
+\item{iCond}{Vector of logicals, or characters specifying which are the random variables on which to condition.}
 }
 \value{
 An \code{n x (nrv-nCond)} matrix containing the draws from the conditional distribution.
 }
 \description{
-Simulation of a Gaussian Copula with Conditioning.
+Conditional simulation from a Gaussian Copula distribution.
+}
+\examples{
+require(GaussCop)
+#conditionally simulate data and plot it
+n = 1e4
+dat1 = rnorm(n, mean = 1, sd = 3)
+dat = cbind(dat1,
+            rnorm(n, mean = dat1, sd = 2),
+            rnorm(n, mean=dat1, sd = 10))
+
+plot(dat[, c(2, 3)]) # plot a subset of the data
+
+# fit Gaussian Copula using gc4 method
+temp.cop = gcopFit(X = dat, fitXD = "gc4")
+
+# simulate data from Copula model and add it to plot, should blend in
+new.data = rgcopCond(n, gCop = temp.cop, XCond = as.matrix(dat1), iCond = !c(FALSE, TRUE, TRUE))
+points(new.data, cex = 0.5, col="red") # plot points from subsetted copula
 }

@@ -1,8 +1,24 @@
-#' Marginal subset of a gcop object.
-#'
+#' @title Marginal subset of a gcop object.
+#' @description Extracts marginal distributions from a Gaussian Copula.
 #' @param gCop A \code{gcop} object.
-#' @param subset Vector specifying which subset of variables to keep.  Default is all.
+#' @param subset Vector specifying which subset of variables to keep. Default is all.
 #' @return A \code{gcop} with variables possibly removed.
+#' @examples 
+#' require(GaussCop)
+# simulate data and plot it
+#' n = 5e4
+#' dat = cbind(rnorm(n, mean = 1, sd = 3),
+#'             rnorm(n, mean=4, sd = 0.5),
+#'             rt(n, df = 5),
+#'             rchisq(n, df = 3),
+#'             rnorm(n, mean=10, sd = 10))
+#' plot(dat[, c(3, 4)]) # plot a subset of the data
+#' # fit Gaussian Copula using Kernel method
+#' temp.cop = gcopFit(X = dat, fitXD = "gc4")
+#' sub.cop = gcopSub(temp.cop, c(3, 4)) # subset copula
+#' # simulate data from Copula model and add it to plot, should blend in
+#' new.data = rgcop(100, sub.cop)
+#' points(new.data, cex = 0.5, col="red") # plot points from subsetted copula
 #' @export
 gcopSub <- function(gCop, subset) {
   # convert subset to a numeric vector

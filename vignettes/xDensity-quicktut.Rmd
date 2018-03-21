@@ -1,0 +1,300 @@
+---
+title: "Univariate Distributions as `xDens` Objects"
+author: "Martin Lysy, Jonathan Ramkissoon"
+date: "`r Sys.Date()`"
+output:
+  html_vignette:
+    toc: true
+bibliography: references.bib
+csl: taylor-and-francis-harvard-x.csl
+link-citations: true
+vignette: >
+  %\VignetteIndexEntry{xDensity Objects}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, eval = FALSE, echo = FALSE}
+
+# R code to render vignette
+rmarkdown::render("xDensity-quicktut.Rmd")
+
+```
+
+<!-- Latex commands -->
+\newcommand{\bm}[1]{\boldsymbol{#1}}
+\newcommand{\tx}[1]{\mathrm{#1}}
+\newcommand{\rv}[3][1]{#2_{#1},\ldots,#2_{#3}}
+\newcommand{\XX}{{\bm X}}
+\newcommand{\xx}{{\bm x}}
+\newcommand{\uu}{{\bm u}}
+\newcommand{\iid}{\stackrel{\mathrm{iid}}{\sim}}
+
+## Introduction
+
+The **`GaussCop`** package proposes a simple, unified framework to provide the basic `d/p/q/r` functions for arbitrary continuous one-dimensional distributions.  This can be useful for working with various Copula models (including the Gaussian Copula). 
+
+### `xDens` Objects
+
+Let $X$ denote an unbounded, continuous random variable with PDF $X \sim f(x)$.  An `xDens` object essentially consists of the following elements:
+
+ - PDF values on an evenly-spaced grid.
+ - The mean and standard deviation of a Normal distribution to be used outside the grid.
+ 
+ Based on this representation, the `d`/`p`/`q`/`r` functions are implemented as follows:
+ 
+ - *PDF* (`d`): Step function inside the grid, Normal outside the grid.
+ - *CDF* (`p`): Piecewise linear inside the grid, Normal outside the grid.
+ - *Inverse-CDF* (`q`): Exact numerical inversion of the CDF.
+ - *Sampling* (`r`): Inverse-CDF method.  That is, if $F(x)$ is a CDF and $U \sim \tx{Unif}(0,1)$, then $X = F^{-1}(U)$ has CDF $F(x)$.
+ 
+### Basic Usage
+
+```{r}
+
+
+```
+
+`xDens` objects  can be constructed either from iid samples $\rv X n \iid f(x)$ or from a functional representation of $f(x)$ itself.  
+<!-- are created from a non-parametric estimate of $f(x)$ obtained from a random sample $\rv X n \iid f(x)$.   -->
+For example, consider the following `xDens` representation based on a random sample from the log-Exponential distribution,
+$$
+\log(X) \sim \tx{Expo}(1) \qquad \iff \qquad f(x) = \exp(-e^x + x).
+$$
+```{r}
+require(GaussCop) # load package
+
+# simulate data
+nsamples <- 1e5
+X <- log(rexp(nsamples)) # iid samples from the log-Exponential
+
+xDens <- kernelXD(X) # basic xDens constructor
+names(xDens)
+```
+The elements of `xDens` are:
+
+- `ndens`, `xrng`: a compact representation of the $x$-value grid, i.e., the number of grid points and the range of the grid.
+- `ypdf`, `ylpdf`, `ycdf`:  the PDF, log-PDF, and CDF evaluated at the `ndens` grid points.  While the latter two elements can be reconstructed from the first, they are stored here in order to speed up subsequent calculations.
+- `mean`, `sd`: The mean and variance of the Normal distribution used outside the range of the grid.  By default, these values are chosen by matching the Normal PDF to the `ypdf` values at then endpoints of the grid; details of the calculation can be found in the [Appendix](#appendix) .
+<!-- contains the density at the grid midpoint, and `mean` and `sd` contain the PDF of the Normal outside the grid.  In addition, `ylpdf` and `ycdf` contain the log-density and CDF on the grid, which are precomputed to speed up subsequent calculations. -->
+
+Use of the `d/p/q/r` functions are illustrated with the following code.  First we create a generic function to compare a true distribution to its `xDens` representation:
+```{r}
+# check that xDens d/p/q/r functions match the true distribution,
+# by plotting true PDF/CDF vs xDens representation.
+# xDens: xDens object.
+# dtrue/ptrue: single-variable function of the true pdf/cdf.
+# dname: name of true distribution (for legend)
+# dlpos, plpos: legend position for pdf/cdf plot.
+xdens_test <- function(xDens, dtrue, ptrue, dname, dlpos, plpos) {
+  op <- par(no.readonly = TRUE)
+  par(mfrow = c(1,2), mar = c(4,4,2,.5)+.1)
+  # pdf and sampling check
+  nsamples <- 1e5
+  Xsim <- rXD(nsamples, xDens = xDens) # xDens: random sampling
+  # extend xDens range to show endpoint matching
+  xlim <- xDens$xrng
+  xlim <- (xlim - mean(xlim)) * 1.10 + mean(xlim)
+  hist(Xsim, breaks = 100, freq = FALSE, # xDens random sample
+       xlab = "x", main = "PDF", xlim = xlim)
+  curve(dXD(x, xDens = xDens), add = TRUE, col = "red") # xDens PDF
+  curve(dtrue, add = TRUE, col = "blue") # true PDF
+  abline(v = xDens$xrng, lty = 2) # grid endpoints
+  legend(dlpos, parse(text = c(dname, "dXD", "rXD", "xrng")),
+         pch = c(22,22,22,NA), pt.cex = 1.5,
+         pt.bg = c("blue", "red", "white", "black"),
+         lty = c(NA, NA, NA, 2))
+  # cdf check
+  curve(pXD(x, xDens), # xDens CDF
+        from = xlim[1], to = xlim[2], col = "red",
+        xlab = "x", main = "CDF", ylab = "Cumulative Probability")
+  curve(ptrue, add = TRUE, col = "blue") # true CDF
+  abline(v = xDens$xrng, lty = 2) # grid endpoints
+  legend(plpos, parse(text = c(dname, "pXD", "xrng")),
+         pch = c(22,22,NA), pt.cex = 1.5,
+         pt.bg = c("blue", "red", "black"),
+         lty = c(NA, NA, 2))
+  invisible(par(op))
+}
+```
+Now we can check the accuracy of the `xDens` approximation to the log-Exponential distribution:
+```{r, fig.width = 10, fig.height = 4, out.width = "97%"}
+dlexp <- function(x) exp(-exp(x) + x) # true PDF
+plexp <- function(x) pexp(exp(x)) # true CDF
+xdens_test(xDens, dtrue = dlexp, ptrue = plexp,
+           dname = expression(log(X)%~%"Expo"*(1)),
+           dlpos = "topleft", plpos = "topleft")
+
+```
+
+## Constructors
+
+Power Transform:
+$$z = \begin{array}{rl} \frac{((x + \alpha)^\lambda - 1)}{(\lambda C^{\lambda-1})} & \lambda \neq 0 \\ C \log(x + \alpha) & \lambda = 0, \end{array}$$
+
+`xDens` objects can be constructed using three methods: two involving density estimation of random sample from $f(x)$, and one from a functional approximation to $f(x)$, e.g., using a parametric family $f(x \mid \hat {\bm \theta})$, where $\hat{\bm \theta}$ is the parameter MLE.  
+<!-- These methods are discussed and compared using the true distribution $X \sim \chi^2_{(4)}$. -->
+
+<!-- approximate densities using one of 3 methods: kernel density estimation, Gram-Charlier expansion or by using known a known sample-density matrix. These are discussed and compared using the $\chi^2_{(5)}$ distribution. An endpoint matching technique is used to describe the tails of the approximated densities with a Normal distribution. More about this can be found in [Appendix A: Endpoint Matching]. -->
+
+
+### Kernel Density Estimation
+
+The `kernelXD` function uses the `density` function in **R** to fit a Gaussian kernel to a random sample from $f(x)$. It is the most flexible constructor, however it also requires the most datapoints for stable estimation. Below is a comparison with $M$ iid samples from a $\chi^2_{(4)}$ distribution, using $M = 1000$ and $M = 10000$ data points.
+
+```{r, fig.width = 10, fig.height = 4, out.width = "97%", fig.show = "hold"}
+
+# true distribution: chi^2_(4)
+df_true <- 4
+dtrue <- function(x) dchisq(x, df = df_true)
+ptrue <- function(x) pchisq(x, df = df_true)
+rtrue <- function(n) rchisq(n, df = df_true)
+dname <- paste0("X%~%chi[(",df_true,")]^2")
+
+# simulate data
+nsamples <- 1e3
+X <- rtrue(nsamples)
+xDens <- kernelXD(X) # xDens constructor
+
+par(oma = c(0,2,0,0)) # put sample size in outer margin
+xdens_test(xDens, dtrue = dtrue, ptrue = ptrue,
+           dname = dname,
+           dlpos = "topright", plpos = "bottomright")
+mtext(text = paste0("M = ", nsamples),
+      side = 2, line = .5, outer = TRUE)
+
+# increase sample size
+nsamples <- 1e4
+X <- rtrue(nsamples)
+xDens <- kernelXD(X)
+xdens_test(xDens, dtrue = dtrue, ptrue = ptrue,
+           dname = dname,
+           dlpos = "topright", plpos = "bottomright")
+mtext(text = paste0("M = ", nsamples),
+      side = 2, line = .5, outer = TRUE)
+par(oma = c(0,0,0,0)) # remove outer margin
+
+```
+
+### Gram-Charlier Expansion
+
+The `gc4XD` constructor is a moment-based density estimator, ideal for unimodal distributions to be estimated from small sample sizes.  The estimator first applies a Box-Cox transformation to the data, then fits it with a 4th order  [Gram-Charlier expansion](https://en.wikipedia.org/wiki/Edgeworth_series) [e.g., @draper.tierney72].  The example below illustrates the approximation for $M = 1000$ observations of $X \sim \chi^2_{(4)}$.
+
+```{r, fig.width = 10, fig.height = 4, out.width = "97%"}
+nsamples <- 1e3
+X <- rtrue(nsamples)
+xDens <- gc4XD(X) # xDens constructor
+xdens_test(xDens, dtrue = dtrue, ptrue = ptrue,
+           dname = dname,
+           dlpos = "topright", plpos = "bottomright")
+```
+
+
+### Known Density Values
+
+The `matrixXD` is used to convert functional density representations into the standardized `xDens` format. Its input is a 2-column matrix with equally-spaced $x$-grid values in the first column and corresponding density values in the second. 
+<!-- It essentially appends Normally distributed tails to a grid of known PDF densities.  -->
+<!-- Currently, this function does not accept zero-valued grid density endpoints.  -->
+Below is an illustration using the Cauchy distribution.
+
+```{r, fig.width = 10, fig.height = 4, out.width = "97%"}
+# true distribution: Cauchy
+dtrue <- function(x) dcauchy(x)
+ptrue <- function(x) pcauchy(x)
+dname <- expression(X%~%"Cauchy")
+
+# matrix density representation
+xgrid <- seq(from=-15, to=15, len = 500) # grid
+ypdf <- dtrue(xgrid)
+xDens <- matrixXD(cbind(X = xgrid, Y = ypdf)) # xDens constructor
+
+xdens_test(xDens, dtrue = dtrue, ptrue = ptrue,
+           dname = dname,
+           dlpos = "topright", plpos = "bottomright")
+
+```
+
+## Example: The Gaussian Copula Distribution
+
+Consider a $d$-dimensional random variable $\XX = (\rv X d)$ with unknown PDF $\XX \sim f(\xx)$.  A popular approach to statistical dependence modeling is to do so upon transforming $\XX$ to having univariate margins.  That is, if $F_i(x_i)$ is the CDF of $X_i$, then
+$$
+U_i = F_i^{-1}(X_i) \sim \tx{Unif}(0,1),
+$$
+such that the joint PDF of $\XX$ can be written as [*get density right*]
+$$
+f(\xx) = c(\uu), \qquad u_i = F_i^{-1}(x_i)
+$$
+Thus, $c(\uu)$ is the joint PDF of marginally Uniform random variables and is known as a Copula distribution.  Numerous **R** packages provide various methods for fitting and sampling from Copula distributions, e.g., [**`copula`**](https://CRAN.R-project.org/package=copula) [@hofert.etal17],  [**`VineCopula`**](https://CRAN.R-project.org/package=VineCopula) [@schepsmeier.etal17], and many others listed in the [**`Distributions`**](https://CRAN.R-project.org/view=Distributions) Task View.    
+
+## Appendix A: Endpoint Matching {#appendix}
+
+We wish to find the parameters $(\mu, \sigma)$ of a normal distribution whose PDF passes through the points $(x_i, y_i)$, $i = 1,2$.  Thus we wish to find $(\mu, \sigma)$ satisfying
+$$
+\log y_i = -\frac 1 2 \left[\frac{(x_i - \mu)^2}{\sigma^2} + \log \sigma^2 + \log 2\pi \right], \qquad i = 1,2.
+$$
+Subtracting one equation from the other, we obtain
+$$
+\log(y_1/y_2) = \frac{(x_1 - \mu)^2}{2\sigma^2} - \frac{(x_2 - \mu)^2}{2\sigma^2},
+$$
+such that for any value of $\sigma$ the required value of $\mu$ is
+$$
+\mu(\sigma) = \sigma^2\frac{\log(y_1/y_2)}{x_1 - x_2} + \frac{x_1 + x_2}{2} = b \sigma^2 + a.
+$$
+Substituting this back into one of the two original equations leads to the root-finding problem
+$$
+g(\tau) = \frac{A^2}{\tau} + B^2 \tau + \log \tau - C = 0,
+$$
+where $\tau = \sigma^2$ and
+$$
+A = x_i - a, \qquad B = b, \qquad C = 2[b(x_i-a) - \log y_i] - \log 2\pi.
+$$
+A solution to this equation is not guaranteed to exist.  For instance, let $x_1 = -1$, $x_2 = 1$, and $y_i = 1$.  Then a Normal distribution passing through these points must have density at least $2$.  However, in our case $y_i$ will typically be very small, in which case a root is likely to exist.  Even then, there could be two roots to the equation: one with $\mu$ between $x_1$ and $x_2$, and one with $\mu$ (way) off to one side.  We'll focus here on finding the former.
+
+The root we seek can be calculated numerically with the (built-in) **R** function `uniroot`, which requires specification of an interval containing the root.  To obtain this interval, first notice that $g'(\tau) = -\frac{A^2}{\tau^2} + B^2 + \frac{1}{\tau}$, of which the only positive solution is
+$$
+\tau_L = \frac{-1 + \sqrt{1 + 4(AB)^2}}{2B^2}.
+$$
+Since $g(\tau) \to \infty$ for $\tau \to 0$ and $\tau \to \infty$, we conclude that $\tau_L$ is the minimum value of $g(\tau)$ on $\tau \in (0,\infty)$.  Let us now find a value $\tau_U < \tau_L$ at which $g(\tau_U) > 0$ (doing this for $\tau_U > \tau_L$ is likely to have $\mu$ outside of $(x_1, x_2)$).
+
+In order to find a lower bound for the root, note that for $0 < \tau < A^2/2$, we have 
+$$\log \tau > -\frac{A^2/2}{\tau} + D, \qquad D = 1 + \log(A^2/2).
+$$
+This is because the derivative of the RHS is larger than that of the LHS for $\tau < A^2/2$, thus falls to $-\infty$ monotonically faster as $\tau \to 0$.  The value of $D$ is chosen such that LHS and RHS are equal at $\tau = A^2/2$.  Substituting the inequality above into the root-finding equation, we obtain
+$$
+g(\tau) > \frac{A^2}{\tau} + \log \tau - C > \frac{A^2/2}{\tau} + D - C,
+$$
+such that $g(\tau) > 0$ for $\tau < \frac{A^2}{2(C-D)}$.
+
+Note that when $y_1 = y_2$, the endpoint matching method breaks down and the mean and standard deviation of the approximated density is used for the Normally distributed tails.
+
+## References
+
+<!-- - $g(\tau) \to \infty$ both as $\tau \to 0$ and $\tau \to \infty$. -->
+<!-- - $g'(\tau) = -\frac{A^2}{\tau^2} + B^2 + \frac{1}{\tau}$, of which the only positive solution is -->
+<!--     $$ -->
+<!--     \tau = \frac{-1 + \sqrt{1 + 4(AB)^2}}{2B^2}. -->
+<!-- 	$$ -->
+<!--     Since $g(\tau) \to \infty$ is infinite for $\tau,1/\tau -->
+
+<!-- Given the endpoints of the grid, $(x_1, x_2)$ and their corresponding log-densities, $(\log(y_1), \log(y_2))$, the $\mu$ and $\sigma$ of a Normal distribution for the tails is calculated as follows: -->
+<!-- $$ y_i = \frac{1}{\sqrt{2\pi\sigma^2}} + e^\frac{(x_i-\mu)^2}{\sigma^2} ~~~~~~~~~~ i=1,2$$ -->
+<!-- $$ \log(y_i) = -\frac{1}{2}\log(2\pi\sigma^2) - \frac{(x_i-\mu)^2}{2\sigma^2} $$ -->
+<!-- Subtracting $\log(y_1) - \log(y_2)$ and denoting $\log(y_i)$ as $ly_i$ -->
+<!-- $$ \frac{(x_1 - \mu)^2}{2\sigma^2} + \frac{(x_2 - \mu)^2}{2\sigma^2} = ly_1 - ly_2$$ -->
+<!-- We get a linear relationship between $\mu$ and $\sigma^2$ -->
+<!-- $$ \mu = \sigma^2\frac{(ly_1 - ly_2)}{x_1 - x_2} + \frac{x_1 + x_2}{2} $$ -->
+<!-- For simplicity, let $a = \frac{x_1 + x_2}{2}$ and $b = \frac{(ly_1 - ly_2)}{x_1 - x_2}$, so that $\mu = b\sigma^2 + a$ -->
+<!-- Substituting $\mu$ back into the log-pdf  -->
+<!-- $$ ly_i = -\frac{1}{2}\log(2\pi\sigma^2) - \frac{(x_i - a - b\sigma^2)^2}{2\sigma^2} $$  -->
+<!-- $$ -2ly_i = \log(\sigma^2) + \frac{(x_i - a)^2}{\sigma^2} + b^2\sigma^2 - 2(x_i - a)b + \log(2\pi) $$ -->
+<!-- $$ \log(\sigma^2) + \frac{(x_i - a)^2}{\sigma^2} + b^2\sigma^2  = 2(x_i - a)b - \log(2\pi) - 2ly_i$$ -->
+<!-- Letting $w = 2(x_i - a)b - \log(2\pi) - 2ly_i$, we have [[[[[[[[could $b$ be negative (yes, if $y_1 > y_2$), what to do in this situation?]]]]]]]] -->
+<!-- $$ \log(\sigma^2) + \frac{(x_i - a)^2}{\sigma^2} + b^2\sigma^2 - w = 0$$ -->
+<!-- $$ g(\sigma^2 ~|~ x, a, b) = \log(\sigma^2) + \frac{(x - a)^2}{\sigma^2} + b^2\sigma^2 - w $$ -->
+<!-- $$ g'(\sigma^2 ~|~ x, a, b) = \frac{2}{\sigma} - \frac{2(x - a)^2}{\sigma^3} + 2b^2\sigma$$ -->
+<!-- Setting $g'(\sigma^2 ~|~ x, a, b) = 0$ gives a quadratic equation in $\tau = \sigma^2$ whose roots are: -->
+<!-- $$ \frac{-1 \pm \sqrt{1+4b(x-a)^2}}{2b} $$ -->
+<!-- Since $\sigma^2 > 0$, the only root is $\sigma^2 = \frac{-1 + \sqrt{1+4b(x-a)^2}}{2b}$ -->
+
+
+

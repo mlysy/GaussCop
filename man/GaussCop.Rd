@@ -4,7 +4,10 @@
 \name{GaussCop}
 \alias{GaussCop}
 \alias{GaussCop-package}
-\title{Fitting, Evaluating, and Sampling from the Gaussian Copula Distribution.}
+\title{Simulation, Inference, and Density Evaluation for the Gaussian Copula Distribution.}
 \description{
-Fitting, Evaluating, and Sampling from the Gaussian Copula Distribution.
+The GaussCop package proposes a simple, unified framework to provide the basic 
+d/p/q/r functions for arbitrary continuous one-dimensional distributions. This can be useful 
+for working with various Copula models, including the Gaussian Copula, for which specific 
+functions are provided.
 }

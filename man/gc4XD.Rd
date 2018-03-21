@@ -2,10 +2,10 @@
 % Please edit documentation in R/gc4.R
 \name{gc4XD}
 \alias{gc4XD}
-\title{Combined Box-Cox Transformation + Gram-Charlier Density Approximation.}
+\title{Combined Box-Cox transformation + Gram-Charlier density approximation.}
 \usage{
 gc4XD(x, lambda = NULL, alpha = 0, cmom = NULL, trim = 0.01, n = 512,
-  from, to, mean, sd, ..., debug = FALSE)
+  from, to, mean, sd, ...)
 }
 \arguments{
 \item{x}{Sample from density to approximate.}
@@ -18,20 +18,51 @@ gc4XD(x, lambda = NULL, alpha = 0, cmom = NULL, trim = 0.01, n = 512,
 
 \item{trim}{Scalar between 0 and 1; removes the \code{trim} fraction of extreme values from \code{x} for estimation of \code{lambda} and \code{cmom}, which are very sensitive to outliers.  \code{trim = FALSE} does not trim any values.}
 
-\item{n, from, to}{specifies a grid of values on which to evaluate the density.}
+\item{n, from, to}{Specifies a grid of values on which to evaluate the density.}
 
-\item{mean, sd}{mean and standard deviation for extended density.}
+\item{mean, sd}{Optional mean and standard deviation for extended density.}
 
-\item{...}{additional parameters to Box-Cox fitting function \code{\link{powFit}}.}
+\item{...}{Additional parameters to Box-Cox fitting function \code{\link{powFit}}.}
 }
 \value{
 An \code{xDens} object.
 }
 \description{
-Combined Box-Cox Transformation + Gram-Charlier Density Approximation.
+The \code{gc4XD} constructor is a moment-based density estimator, ideal for unimodal 
+distributions to be estimated from small sample sizes. The estimator first applies a Box-Cox 
+transformation to the data, then fits it with a 4th order Gram-Charlier expansion.
 }
 \details{
 \code{x} is first standardized to \code{z = x/sd(x) - min(x/sd(x), from) + 1}, before the Box-Cox transform is applied.
-
 \code{lambda} can be estimated from the data, but for stability \code{alpha} must be provided.
+}
+\examples{
+df = 3
+nsamples <- 1e4
+X <- rchisq(nsamples, df=df) # iid samples from the Chi-Sq(df)
+xDens <- gc4XD(X) # Gram-Charlier constructor
+par(mfrow = c(1,2), mar = c(4,4,2,.5)+.1)
+
+# pdf and sampling check
+Xsim <- rXD(nsamples, xDens = xDens) # xDensity: random sampling
+hist(Xsim, breaks = 100, freq = FALSE,
+     xlab = "x", main = "PDF")
+curve(dXD(x, xDens = xDens), add = TRUE, col = "red") # xDensity PDF
+curve(dchisq(x, df=df), add = TRUE, col = "blue") # true PDF
+abline(v = xDens$xrng, lty = 2) # grid endpoints
+legend("topright", c("rXD", "dXD", "dchisq(df)", "xRange"),
+       pch = c(22,22,22,NA), pt.cex = 1.5,
+       pt.bg = c("white", "red", "blue", "black"),
+       lty = c(NA, NA, NA, 2))
+
+# cdf check
+curve(pXD(x, xDens), # xDensity CDF
+      from = min(Xsim), to = max(Xsim), col = "red",
+      xlab = "x", main = "CDF", ylab = "Cumulative Probability")
+curve(pchisq(x, df=df), add = TRUE, col = "blue") # true CDF
+abline(v = xDens$xrng, lty = 2) # grid endpoints
+legend("bottomright", c("pXD", "chisq(df)", "xRange"),
+       pch = c(22,22,NA), pt.cex = 1.5,
+       pt.bg = c("red", "blue", "black"),
+       lty = c(NA, NA, 2))
 }

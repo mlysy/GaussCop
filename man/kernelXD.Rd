@@ -2,18 +2,18 @@
 % Please edit documentation in R/xdensity.R
 \name{kernelXD}
 \alias{kernelXD}
-\title{Extended Kernel Density Approximation}
+\title{Extended Kernel Density Approximation Constructor.}
 \usage{
 kernelXD(x, n = 512, from, to, mean, sd, any0 = FALSE, ...)
 }
 \arguments{
-\item{x}{vector of samples from the underlying distribution.}
+\item{x}{Vector of samples from the underlying distribution.}
 
-\item{n, from, to}{optional arguments to \code{\link{stat::density}} which are used to set the grid on which to evaluate the kernel estimator.}
+\item{n, from, to}{Optional arguments to \code{\link{stat::density}} which are used to set the grid on which to evaluate the kernel estimator.}
 
-\item{mean, sd}{optional mean and standard deviation arguments for the extended density.  Default to the mean and standard deviation of \code{x}.}
+\item{mean, sd}{Optional mean and standard deviation arguments for the extended density.  Default to the mean and standard deviation of \code{x}.}
 
-\item{any0}{logical; if FALSE forces the support of the density to be the real line.}
+\item{any0}{Logical; if FALSE forces the support of the density to be the real line.}
 
 \item{...}{additional arguments to \code{\link{stat::density}}.}
 }
@@ -21,5 +21,35 @@ kernelXD(x, n = 512, from, to, mean, sd, any0 = FALSE, ...)
 an \code{xDens} object.
 }
 \description{
-Extended Kernel Density Approximation
+Constructs an \code{xDens} object using kernel density approximation.
+}
+\examples{
+df = 4 # chisq degrees of freedom
+nsamples = 5e3
+X <- rchisq(nsamples, df=df) # iid samples from the Chi-Sq(3)
+xDens <- kernelXD(X) # Kernel density estimation constructor
+par(mfrow = c(1,2), mar = c(4,4,2,.5)+.1)
+
+# pdf and sampling check
+Xsim <- rXD(nsamples, xDens = xDens) # xDensity: random sampling
+hist(Xsim, breaks = 100, freq = FALSE,
+     xlab = "x", main = "PDF", ylim=c(0, 0.2))
+curve(dXD(x, xDens = xDens), add = TRUE, col = "red") # xDensity PDF
+curve(dchisq(x, df=df), add = TRUE, col = "blue") # true PDF
+abline(v = xDens$xrng, lty = 2) # grid endpoints
+legend("topright", c("rXD", "dXD", "dchisq(4)", "xRange"),
+       pch = c(22,22,22,NA), pt.cex = 1.5,
+       pt.bg = c("white", "red", "blue", "black"),
+       lty = c(NA, NA, NA, 2))
+
+# cdf check
+curve(pXD(x, xDens), # xDensity CDF
+      from = min(Xsim), to = max(Xsim), col = "red",
+      xlab = "x", main = "CDF", ylab = "Cumulative Probability")
+curve(pchisq(x, df=df), add = TRUE, col = "blue") # true CDF
+abline(v = xDens$xrng, lty = 2) # grid endpoints
+legend("bottomright", c("pXD", "chisq(4)", "xRange"),
+       pch = c(22,22,NA), pt.cex = 1.5,
+       pt.bg = c("red", "blue", "black"),
+       lty = c(NA, NA, 2))
 }

@@ -2,34 +2,34 @@
 % Please edit documentation in R/gcopSub.R
 \name{gcopSub}
 \alias{gcopSub}
-\title{Marginal subset of a gcop object.}
+\title{Extract a subset of variables from a Gaussian Copula distribution.}
 \usage{
 gcopSub(gCop, subset)
 }
 \arguments{
-\item{gCop}{A \code{gcop} object.}
+\item{gCop}{A \code{gaussCop} object (see \code{\link{gcopFit}}).}
 
-\item{subset}{Vector specifying which subset of variables to keep. Default is all.}
+\item{subset}{Integer or logical vector specifying which subset of variables to keep. Default is to keep all variables.}
 }
 \value{
-A \code{gcop} with variables possibly removed.
+A \code{gaussCop} object representing the marginal Gaussian Copula distribution on the subset of variables.
 }
 \description{
-Extracts marginal distributions from a Gaussian Copula.
+Extract a subset of variables from a Gaussian Copula distribution.
 }
 \examples{
-require(GaussCop)
-n = 5e4
-dat = cbind(rnorm(n, mean = 1, sd = 3),
-            rnorm(n, mean=4, sd = 0.5),
-            rt(n, df = 5),
-            rchisq(n, df = 3),
-            rnorm(n, mean=10, sd = 10))
+# simulate data and plot it
+n <- 5e4
+dat <- cbind(rnorm(n, mean = 1, sd = 3),
+             rnorm(n, mean=4, sd = 0.5),
+             rt(n, df = 5),
+             rchisq(n, df = 3),
+             rnorm(n, mean=10, sd = 10))
 plot(dat[, c(3, 4)]) # plot a subset of the data
 # fit Gaussian Copula using Kernel method
-temp.cop = gcopFit(X = dat, fitXD = "gc4")
-sub.cop = gcopSub(temp.cop, c(3, 4)) # subset copula
+temp.cop <- gcopFit(X = dat, fitXD = "gc4")
+sub.cop <- gcopSub(temp.cop, c(3, 4)) # subset copula
 # simulate data from Copula model and add it to plot, should blend in
-new.data = rgcop(100, sub.cop)
+new.data <- rgcop(100, sub.cop)
 points(new.data, cex = 0.5, col="red") # plot points from subsetted copula
 }

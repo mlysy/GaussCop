@@ -7,21 +7,21 @@
 powTrans(x, lambda = 0, alpha = 0, normalize = FALSE, jacobian = FALSE)
 }
 \arguments{
-\item{x}{Vector of values at which to compute the transformation.}
+\item{x}{Vector of quantiles at which to compute the transformation.}
 
-\item{lambda}{Exponent of the transformation.  See details.}
+\item{lambda}{Exponent of the transformation.  See Details.}
 
-\item{alpha}{Offset of the transformation.  See details.}
+\item{alpha}{Offset of the transformation.  See Details.}
 
-\item{normalize}{Logical; if TRUE divides by the geometric mean.  See details.}
+\item{normalize}{Logical; if \code{TRUE} divides by the geometric mean.  See Details.}
 
-\item{jacobian}{Logical; if TRUE calculates the Jacobian \code{|dz / dx|}, which converts transformed density values back to the original scale.}
+\item{jacobian}{Logical; if \code{TRUE} calculates the Jacobian \code{|dz / dx|}, which converts transformed density values back to the original scale.}
 }
 \value{
-The vector \code{z} of transformed values, and optionally the Jacobian of the inverse transformation.  See details.
+The vector \code{z} of transformed values, and optionally the Jacobian of the inverse transformation.  See Details.
 }
 \description{
-Applies a generalized Box-Cox (Power) transform to a vector \code{x}.
+Generalized Box-Cox transformation.
 }
 \details{
 The Generalized Power or Box-Cox transformation is
@@ -37,11 +37,11 @@ where \eqn{C}{C} is the Geometric mean, i.e., \code{C = exp(mean(log(x + alpha))
 # generate data and plot
 # apply power transform and superimpose on plot
 # finally, superimpose N(0, 1) on plot
-n = 1e5
-df = 5
-X = rchisq(n, df = df)
-xdens = kernelXD(X)
-xdens.trans = kernelXD(powTrans(X))
+n <- 1e5
+df <- 5
+X <- rchisq(n, df = df)
+xdens <- kernelXD(X)
+xdens.trans <- kernelXD(powTrans(X))
 # plots
 curve(dnorm(x), col = "blue", xlim=c(-5, 5), ylim = c(0,0.7)) # true PDF
 curve(dXD(x, xDens = xdens), add = TRUE, col = "red") # xDensity PDF

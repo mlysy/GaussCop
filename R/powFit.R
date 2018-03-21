@@ -1,28 +1,28 @@
-#' @title Generalized Box-Cox transformation.
-#' @description Applies a generalized Box-Cox (Power) transform to a vector \code{x}.
-#' @param x Vector of values at which to compute the transformation.
-#' @param lambda Exponent of the transformation.  See details.
-#' @param alpha Offset of the transformation.  See details.
-#' @param normalize Logical; if TRUE divides by the geometric mean.  See details.
-#' @param jacobian Logical; if TRUE calculates the Jacobian \code{|dz / dx|}, which converts transformed density values back to the original scale.
+#' Generalized Box-Cox transformation.
+#'
+#' @param x Vector of quantiles at which to compute the transformation.
+#' @param lambda Exponent of the transformation.  See Details.
+#' @param alpha Offset of the transformation.  See Details.
+#' @param normalize Logical; if \code{TRUE} divides by the geometric mean.  See Details.
+#' @param jacobian Logical; if \code{TRUE} calculates the Jacobian \code{|dz / dx|}, which converts transformed density values back to the original scale.
 #' @details The Generalized Power or Box-Cox transformation is
 #' \deqn{
 #' z = \begin{array}{rl} ((x + \alpha)^\lambda - 1) / (\lambda C^{\lambda-1}) & \lambda \neq 0 \\ C \log(x + \alpha) & \lambda = 0, \end{array}
 #' }{
 #' z = \begin{array}{rl} ((x + \alpha)^\lambda - 1) / (\lambda C^{\lambda-1}) & \lambda \neq 0 \\ C \log(x + \alpha) & \lambda = 0, \end{array}
 #' }
-#' 
+#'
 #' where \eqn{C}{C} is the Geometric mean, i.e., \code{C = exp(mean(log(x + alpha)))}.  Note that \code{C} is only calculated if \code{normalize = TRUE}.
-#' @return The vector \code{z} of transformed values, and optionally the Jacobian of the inverse transformation.  See details.
+#' @return The vector \code{z} of transformed values, and optionally the Jacobian of the inverse transformation.  See Details.
 #' @examples
 #' # generate data and plot
 #' # apply power transform and superimpose on plot
 #' # finally, superimpose N(0, 1) on plot
-#' n = 1e5
-#' df = 5
-#' X = rchisq(n, df = df)
-#' xdens = kernelXD(X)
-#' xdens.trans = kernelXD(powTrans(X))
+#' n <- 1e5
+#' df <- 5
+#' X <- rchisq(n, df = df)
+#' xdens <- kernelXD(X)
+#' xdens.trans <- kernelXD(powTrans(X))
 #' # plots
 #' curve(dnorm(x), col = "blue", xlim=c(-5, 5), ylim = c(0,0.7)) # true PDF
 #' curve(dXD(x, xDens = xdens), add = TRUE, col = "red") # xDensity PDF
@@ -43,16 +43,16 @@ powTrans <- function(x, lambda = 0, alpha = 0, normalize = FALSE,
   ans
 }
 
-#' Maximum likelihood estimate of the generalized Box-Cox transform.
+#' Maximum likelihood estimation for the Generalized Box-Cox transformation.
 #'
-#' @param x Vector of samples from density.
-#' @param alpha Optional value of the offset parameter.  \code{alpha = FALSE} sets \code{alpha = 1 - min(x)}, thereby guaranteeing that \code{z = x + alpha >= 1}.  This or any scalar value of \code{alpha} optimizes as a function of \code{lambda} only.  \code{alpha = NA} jointly optimizes for \code{lambda} and \code{alpha}.
+#' @param x Vector of random samples from target density.
+#' @param alpha Optional value of the offset parameter.  \code{alpha = FALSE} sets \code{alpha = 1 - min(x)}, thereby guaranteeing that \code{z = x + alpha >= 1}.  This or any scalar value of \code{alpha} finds the conditional MLE as a function of \code{lambda} only.  \code{alpha = NA} finds the joint MLE over \code{(lambda,alpha)}.
 #' @param interval Range of \code{lambda} values for one dimensional optimization.
 #' @param ... Additional arguments to pass to \code{optimize} or \code{optim}, for 1- or 2-parameter optimization.
 #' @details The likelihood for optimization is
 #' \preformatted{L(lambda, alpha | x) = prod(dnorm(z(x | lambda, alpha)) *  |dz(x | lambda, alpha) / dx|)},
 #' where \code{z(x | lambda, alpha)} is the Box-Cox transformation.
-#' @return MLEs for \code{lambda} and possibly \code{alpha} as well.
+#' @return Vector of length two containing the fitted and/or known values of \code{(lambda, alpha)}.
 powFit <- function(x, alpha = NA, interval = c(-5, 5), ...) {
  n <- length(x)
  mx <- min(x)

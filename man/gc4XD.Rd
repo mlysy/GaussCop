@@ -2,42 +2,41 @@
 % Please edit documentation in R/gc4.R
 \name{gc4XD}
 \alias{gc4XD}
-\title{Combined Box-Cox transformation + Gram-Charlier density approximation.}
+\title{Construct an \code{xDensity} representation of a combined Box-Cox/Gram-Charlier density approximation.}
 \usage{
 gc4XD(x, lambda = NULL, alpha = 0, cmom = NULL, trim = 0.01, n = 512,
   from, to, mean, sd, ...)
 }
 \arguments{
-\item{x}{Sample from density to approximate.}
+\item{x}{Vector of random samples from density to approximate.}
 
-\item{lambda}{Exponent of Box-Cox transform.  If NULL it is estimated from \code{x}.  See details.}
+\item{lambda}{Exponent of Box-Cox transform.  If \code{NULL} it is estimated from \code{x}.  See Details.}
 
-\item{alpha}{Offset of the Box-Cox transform.  Default is no offset.  See details.}
+\item{alpha}{Offset of the Box-Cox transform.  Default is no offset.  See Details.}
 
-\item{cmom}{Optional vector of first 4 central moments.  If NULL these are estimated from \code{x}.}
+\item{cmom}{Optional vector of first 4 central moments of \code{x}.  If \code{NULL} these are estimated from \code{x}.}
 
 \item{trim}{Scalar between 0 and 1; removes the \code{trim} fraction of extreme values from \code{x} for estimation of \code{lambda} and \code{cmom}, which are very sensitive to outliers.  \code{trim = FALSE} does not trim any values.}
 
-\item{n, from, to}{Specifies a grid of values on which to evaluate the density.}
+\item{n, from, to}{Specifies a grid of values on which to evaluate the density (see \code{\link[stats]{density}}).}
 
-\item{mean, sd}{Optional mean and standard deviation for extended density.}
+\item{mean, sd}{Optional mean and standard deviation for \code{xDensity} representation.}
 
 \item{...}{Additional parameters to Box-Cox fitting function \code{\link{powFit}}.}
 }
 \value{
-An \code{xDens} object.
+An \code{xDensity} object.
 }
 \description{
-The \code{gc4XD} constructor is a moment-based density estimator, ideal for unimodal 
-distributions to be estimated from small sample sizes. The estimator first applies a Box-Cox 
-transformation to the data, then fits it with a 4th order Gram-Charlier expansion.
+Construct an \code{xDensity} representation of a combined Box-Cox/Gram-Charlier density approximation.
 }
 \details{
 \code{x} is first standardized to \code{z = x/sd(x) - min(x/sd(x), from) + 1}, before the Box-Cox transform is applied.
-\code{lambda} can be estimated from the data, but for stability \code{alpha} must be provided.
+
+For details on the Box-Cox transformation and Gram-Charlier approximation, see \code{\link{powFit}} and \code{\link{dgc4}} respectively.
 }
 \examples{
-df = 3
+df <- 3
 nsamples <- 1e4
 X <- rchisq(nsamples, df=df) # iid samples from the Chi-Sq(df)
 xDens <- gc4XD(X) # Gram-Charlier constructor
@@ -65,4 +64,7 @@ legend("bottomright", c("pXD", "chisq(df)", "xRange"),
        pch = c(22,22,NA), pt.cex = 1.5,
        pt.bg = c("red", "blue", "black"),
        lty = c(NA, NA, 2))
+}
+\seealso{
+\code{\link{powFit}}, \code{\link{dgc4}}, \code{\link{xDensity}}.
 }

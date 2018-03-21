@@ -2,22 +2,19 @@
 #'
 #' @param x Vector of density quantiles.
 #' @param cmom Vector of first 4 central moments of distribution.
-#' @param rm.neg Logical; if TRUE clips the density at smallest calculated non-negative value.
-#' @param log Logical; if TRUE returns approximating density on log scale.
-#' @return Vector of pdf or log(pdf).
-#' @examples 
-#' require(moments) # for finding moments
-#' df = 3
+#' @param rm.neg Logical; if \code{TRUE} clips the density at smallest calculated non-negative value.
+#' @param log Logical; if \code{TRUE} returns approximating density on log scale.
+#' @return Vector of density evaluations.
+#' @examples
+#' df <- 3
 #' nsamples <- 100
-#' X <- rnorm(nsamples, df=df) # iid samples from the Chi-Sq(df)
-#' 
-#' cm <- mean(X)
-#' cm <- c(cm, moment(X, order = 2),
-#'         moment(X, order = 3),
-#'         moment(X, order = 4))
-#' cmom <- cm
-#' 
-#' dgc4(X, cmom = cmom, rm.neg = TRUE) 
+#' X <- rchisq(nsamples, df=df) # iid samples from the Chi-Sq(df)
+#'
+#' # calculate central moments
+#' cmom <- mean(X)
+#' cmom <- c(cmom, mean((X-cmom)^2), mean((X-cmom)^3), mean((X-cmom)^4))
+#'
+#' curve(dgc4(x, cmom = cmom, rm.neg = TRUE), from = 0, to = 10)
 #' @export
 dgc4 <- function(x, cmom, rm.neg = TRUE, log = FALSE) {
   # get 3rd and 4th cumulant
@@ -37,28 +34,28 @@ dgc4 <- function(x, cmom, rm.neg = TRUE, log = FALSE) {
   dens
 }
 
-#' Combined Box-Cox transformation + Gram-Charlier density approximation.
-#' @description The \code{gc4XD} constructor is a moment-based density estimator, ideal for unimodal 
-#' distributions to be estimated from small sample sizes. The estimator first applies a Box-Cox 
-#' transformation to the data, then fits it with a 4th order Gram-Charlier expansion.
-#' @param x Sample from density to approximate.
-#' @param lambda Exponent of Box-Cox transform.  If NULL it is estimated from \code{x}.  See details.
-#' @param alpha Offset of the Box-Cox transform.  Default is no offset.  See details.
-#' @param cmom Optional vector of first 4 central moments.  If NULL these are estimated from \code{x}.
+#' Construct an \code{xDensity} representation of a combined Box-Cox/Gram-Charlier density approximation.
+#'
+#' @param x Vector of random samples from density to approximate.
+#' @param lambda Exponent of Box-Cox transform.  If \code{NULL} it is estimated from \code{x}.  See Details.
+#' @param alpha Offset of the Box-Cox transform.  Default is no offset.  See Details.
+#' @param cmom Optional vector of first 4 central moments of \code{x}.  If \code{NULL} these are estimated from \code{x}.
 #' @param trim Scalar between 0 and 1; removes the \code{trim} fraction of extreme values from \code{x} for estimation of \code{lambda} and \code{cmom}, which are very sensitive to outliers.  \code{trim = FALSE} does not trim any values.
-#' @param n,from,to Specifies a grid of values on which to evaluate the density.
+#' @param n,from,to Specifies a grid of values on which to evaluate the density (see \code{\link[stats]{density}}).
 #' @param ... Additional parameters to Box-Cox fitting function \code{\link{powFit}}.
-#' @param mean,sd Optional mean and standard deviation for extended density.
+#' @param mean,sd Optional mean and standard deviation for \code{xDensity} representation.
 #' @details \code{x} is first standardized to \code{z = x/sd(x) - min(x/sd(x), from) + 1}, before the Box-Cox transform is applied.
-#' \code{lambda} can be estimated from the data, but for stability \code{alpha} must be provided.
-#' @return An \code{xDens} object.
-#' @examples 
-#' df = 3
+#'
+#' For details on the Box-Cox transformation and Gram-Charlier approximation, see \code{\link{powFit}} and \code{\link{dgc4}} respectively.
+#' @return An \code{xDensity} object.
+#' @seealso \code{\link{powFit}}, \code{\link{dgc4}}, \code{\link{xDensity}}.
+#' @examples
+#' df <- 3
 #' nsamples <- 1e4
 #' X <- rchisq(nsamples, df=df) # iid samples from the Chi-Sq(df)
 #' xDens <- gc4XD(X) # Gram-Charlier constructor
 #' par(mfrow = c(1,2), mar = c(4,4,2,.5)+.1)
-#' 
+#'
 #' # pdf and sampling check
 #' Xsim <- rXD(nsamples, xDens = xDens) # xDensity: random sampling
 #' hist(Xsim, breaks = 100, freq = FALSE,
@@ -70,7 +67,7 @@ dgc4 <- function(x, cmom, rm.neg = TRUE, log = FALSE) {
 #'        pch = c(22,22,22,NA), pt.cex = 1.5,
 #'        pt.bg = c("white", "red", "blue", "black"),
 #'        lty = c(NA, NA, NA, 2))
-#' 
+#'
 #' # cdf check
 #' curve(pXD(x, xDens), # xDensity CDF
 #'       from = min(Xsim), to = max(Xsim), col = "red",

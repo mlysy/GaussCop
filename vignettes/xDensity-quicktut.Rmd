@@ -36,10 +36,11 @@ rmarkdown::render("xDensity-quicktut.Rmd")
 \newcommand{\iid}{\stackrel{\mathrm{iid}}{\sim}}
 \newcommand{\argmin}{\mathrm{argmin}}
 \newcommand{\N}{{\mathcal N}}
+\renewcommand{\|}{\,|\,}
 
 ## Introduction
 
-The **`GaussCop`** package proposes a simple, unified framework to provide the basic `d/p/q/r` functions for arbitrary continuous one-dimensional distributions.  This can be useful for working with various Copula models (including the Gaussian Copula). 
+The **`GaussCop`** package proposes a simple, unified framework to provide the basic `d/p/q/r` functions for arbitrary continuous one-dimensional distributions.  This can be useful for working with various Copula models (including the Gaussian Copula in the example [below](#gCop)). 
 
 ### `xDensity` Objects
 
@@ -57,14 +58,8 @@ Let $X$ denote an unbounded, continuous random variable with PDF $X \sim f(x)$. 
  
 ### Basic Usage
 
-```{r}
 
-
-```
-
-`xDensity` objects  can be constructed either from iid samples $\rv X n \iid f(x)$ or from a functional representation of $f(x)$ itself.  
-<!-- are created from a non-parametric estimate of $f(x)$ obtained from a random sample $\rv X n \iid f(x)$.   -->
-For example, consider the following `xDensity` representation based on a random sample from the log-Exponential distribution,
+`xDensity` objects  can be constructed either from iid samples $\rv X n \iid f(x)$ or from a functional representation of $f(x)$ itself.  For example, consider the following `xDensity` representation based on a random sample from the log-Exponential distribution,
 $$
 \log(X) \sim \tx{Expo}(1) \qquad \iff \qquad f(x) = \exp(-e^x + x).
 $$
@@ -85,8 +80,6 @@ The elements of `xDens` are:
 - `mean`, `sd`: The mean and variance of the Normal distribution used outside the range of the grid.  By default, these values are chosen by matching the Normal PDF to the `ypdf` values at then endpoints of the grid; details of the calculation can be found in the [Appendix](#appendix) .
 <!-- contains the density at the grid midpoint, and `mean` and `sd` contain the PDF of the Normal outside the grid.  In addition, `ylpdf` and `ycdf` contain the log-density and CDF on the grid, which are precomputed to speed up subsequent calculations. -->
 
-The `d/p/q/r` functions for `xDensity` objects are invoked by e.g., `dXD(x, xDens = xDens, log = TRUE)` as seen in the [Appendix](#apptest) **R** code for the test function `xdens_test`.
-<!-- First we create a generic function to compare a true distribution to its `xDensity` representation: -->
 ```{r xdens_test, echo = FALSE}
 # check that xDensity d/p/q/r functions match the true distribution,
 # by plotting true PDF/CDF vs xDensity representation.
@@ -125,7 +118,7 @@ xdens_test <- function(xDens, dtrue, ptrue, dname, dlpos, plpos) {
   invisible(par(op))
 }
 ```
-That is, consider the following graphical check of an `xDensity` approximation to the log-Exponential distribution $\log(X) \sim \tx{Expo}(1)$:
+The `d/p/q/r` functions for `xDensity` objects are invoked by e.g., `dXD(x, xDens = xDens, log = TRUE)` as seen in the [Appendix](#apptest) **R** code for the test function `xdens_test`.  That is, consider the following graphical check of an `xDensity` approximation to the log-Exponential distribution $\log(X) \sim \tx{Expo}(1)$:
 
 1. Check that histogram of `rXD` sample matches `dXD` and the true PDF (recall that `rXD` calls `qXD` on `runif`).
 2. Check that `pXD` matches true CDF.
@@ -196,12 +189,19 @@ par(oma = c(0,0,0,0)) # remove outer margin
 
 ### Gram-Charlier Expansion
 
-The `gc4XD` constructor implements a moment-based density approximation, which works best for unimodal distributions that are not too far from normal.
+The `gc4XD` constructor implements a moment-based density approximation, which works best for unimodal distributions that are not too far from normal.  The estimator proceeds in two steps:
 
-The estimator first applies a Box-Cox transformation to each observation $X_i$,
-$$Z_i = \tx{BoxCox}(X_i), \qquad \tx{BoxCox}(x) = \begin{cases} \frac{((x + \alpha)^\lambda - 1)}{(\lambda C^{\lambda-1})} & \lambda \neq 0 \\ C \log(x + \alpha) & \lambda = 0, \end{cases}
+1.  The data are first normalized by applying a Box-Cox transformation to each observation $X_i$,
+$$Z_i = \tx{BoxCox}(X_i \| \hat \alpha, \hat \lambda), \qquad \tx{BoxCox}(x \| \alpha, \lambda) = \begin{cases} \frac{((x + \alpha)^\lambda - 1)}{(\lambda C^{\lambda-1})} & \lambda \neq 0 \\ C \log(x + \alpha) & \lambda = 0, \end{cases}
 $$
-then fits $\rv Z n$ with a 4th order  [Gram-Charlier expansion](https://en.wikipedia.org/wiki/Edgeworth_series) [e.g., @draper.tierney72].  The example below illustrates the approximation for $M = 1000$ observations of $X \sim \chi^2_{(4)}$.
+where $(\hat \alpha, \hat \lambda)$ are obtained by maximum likelihood.
+2.  The transformed data $\rv Z n$ are then fit with a 4th order  [Gram-Charlier expansion](https://en.wikipedia.org/wiki/Edgeworth_series) [e.g., @draper.tierney72].  That is, let $\hat \mu$, $\hat \sigma$, $\hat \kappa_3$, and $\hat \kappa_4$ denote the sample-based estimates of the first four [cumulants](https://en.wikipedia.org/wiki/Cumulant) of $Z = \tx{BoxCox}(X \| \hat \alpha, \hat \lambda)$.  The 4th order Gram-Charlier approximation to the true PDF $f(z)$ is
+$$
+\hat f(z) = \frac{1}{\sqrt{2\pi}\hat \sigma} \exp\left[-\frac{(z-\hat \mu)^2}{2\hat\sigma^2}\right] \times \left[1 + \frac{\hat \kappa_3}{3!\hat \sigma^3} H_3\left(\frac{z-\hat\mu}{\hat\sigma}\right) + \frac{\hat \kappa_4}{4!\hat\sigma^4} H_4\left(\frac{z-\hat\mu}{\hat\sigma}\right)\right],
+$$
+where $H_3(z) = z^3 - 3z$ and $H_4(z) = z^4 - 6z^2 + 3$ are the 3rd and 4th [Hermite polynomials](https://en.wikipedia.org/wiki/Hermite_polynomials).  The approximation $\hat f(z)$ is not guaranteed to be positive, but generally is for reasonably unimodal distributions, in which case $\hat f(z)$ is a (normalized) PDF with mean, variance, skewness and kurtosis exactly matching those of the transformed data $\rv Z n$.
+
+The `gc4XD` constructor estimates the PDF of the data $\rv X n$ on the original scale by inverting steps 1 and 2 above. The example below illustrates the quality of the approximation for $M = 1000$ observations of $X \sim \chi^2_{(4)}$.
 
 ```{r, echo = -1, fig.width = 10, fig.height = 4, out.width = "97%"}
 set.seed(1) # reproducible results
@@ -243,7 +243,7 @@ for(ii in 1:2) {
 ```
 
 
-## Application: The Gaussian Copula Distribution
+## Application: The Gaussian Copula Distribution {#gCop}
 
 Consider a $d$-dimensional random variable $\XX = (\rv X d)$ with unknown PDF $\XX \sim f(\xx)$.  A popular approach to statistical dependence modeling is to do so upon transforming $\XX$ to having univariate margins.  That is, if $F_i(x_i)$ is the CDF of $X_i$, then
 $$
@@ -265,15 +265,16 @@ $$
 $$
 where $\varphi(\zz \mid \RR)$ is the joint PDF of a multivariate normal $\N(0, \RR)$ with correlation matrix $\RR_{ii} = 1$.
 
-To evaluate the accuracy of the Gaussian Copula appromation, consider applying it to the 3-dimensional Cholesky decomposition of a $2\times 2$ unit [Wishart distribution](),
+To evaluate the accuracy of the Gaussian Copula appromation, consider applying it to the $p(p+1)/2$-dimensional Cholesky decomposition of a $p\times p$ unit [Wishart distribution](),
 $$
-\XX_{2\times 2} \sim \tx{Wishart}(\II, 1),
+\XX_{p\times p} \sim \tx{Wishart}(\II, 1),
 $$
-where $\XX = \ZZ'\ZZ$ and $\ZZ$ is a $2\times 2$ matrix of iid $\N(0,1)$.  By construction, the Gaussian Copula perfectly captures the marginal distributions of $\tx{chol}(\XX)$.  Therefore, consider the error on the marginal distributions of the eigenvalues of $\XX$, induced by approximating the copula dependence between the Cholesky variables as multivariate normal.  In this case, the error appears to be relatively small:
-```{r, fig.width = 10, fig.height = 4, out.width = "97%", fig.show="hold", cache = TRUE}
+where $\XX = \ZZ'\ZZ$ and $\ZZ$ is a $p\times p$ matrix of iid $\N(0,1)$.  By construction, the Gaussian Copula perfectly captures the marginal distributions of $\tx{chol}(\XX)$.  Therefore, consider the error on the marginal distributions of the eigenvalues of $\XX$, induced by approximating the copula dependence between the Cholesky variables as multivariate normal.  In the example below with $p = 4$, the error appears to be relatively small:
+```{r eigen, cache = TRUE}
 # simulate data from unit Wishart distribution
+p <- 4 # size of matrix
 nsamples <- 1e5
-X <- replicate(nsamples, crossprod(matrix(rnorm(4),2,2)))
+X <- replicate(nsamples, crossprod(matrix(rnorm(p^2),p,p)))
 
 # Cholesky decomposition
 Xchol <- apply(X, 3, function(V) chol(V)[upper.tri(V,diag = TRUE)]) 
@@ -284,37 +285,39 @@ gCop <- gcopFit(X = Xchol, # iid sample from multivariate distribution
                 fitXD = "kernel") # xDensity approximation to each margin
 
 # Compare approximation to true distribution of eigenvalues of X
-# eigenvalues of 2x2 matrix
-eig22 <- function(V) {
-  c1 <- V[1,1] + V[2,2] # trace
-  c2 <- V[1,1]*V[2,2] - V[1,2]^2 # determinant
-  c2 <- sqrt(.25 * c1^2 - c2)
-  c(.5 * c1 + c2, .5 * c1 - c2)
+
+# extract sorted eigenvalues of a positive definite matrix
+eig_val <- function(V) {
+  sort(eigen(V, symmetric = TRUE)$values, decreasing = TRUE)
 }
 
-Xeig <- t(apply(X, 3, eig22)) # true distribution
+Xeig <- t(apply(X, 3, eig_val)) # true distribution
 Xeig2 <- rgcop(nsamples, gCop = gCop) # Gaussian Copula approximation
 Xeig2 <- t(apply(Xeig2, 1, function(U) {
   # recover full matrix
-  V <- matrix(0,2,2)
+  V <- matrix(0,p,p)
   V[upper.tri(V,diag=TRUE)] <- U
   V <- crossprod(V)
-  eig22(V)
+  eig_val(V)
 }))
-main = expression(lambda[1],lambda[2])
-
-par(mfrow = c(1,2), mar = c(2.5,2.5,2,.1)+.1, oma = c(0,2,0,0))
-for(ii in 1:2) {
+```
+```{r, fig.width = 10, fig.height = 2.5, out.width = "97%", fig.show = "hold"}
+# plot true and approximate eigenvalue distributions
+main <- parse(text = paste0("lambda[", 1:p, "]"))
+par(mfrow = c(1,p), mar = c(2.5,2.5,2,.1)+.1, oma = c(0,2,0,0))
+for(ii in 1:p) {
   dtrue <- density(Xeig[,ii])
   dapprox <- density(Xeig2[,ii])
   xlim <- range(dtrue$x, dapprox$x)
   ylim <- range(dtrue$y, dapprox$y)
   plot(dtrue$x, dtrue$y, type = "l", xlim = xlim, ylim = ylim,
-       main = main[ii], xlab = "", ylab = "")
+       main = main[ii], xlab = "", ylab = "", col = "blue")
   lines(dapprox$x, dapprox$y, col = "red")
 }
 mtext(text = "Density",
       side = 2, line = .5, outer = TRUE)
+legend("topright", legend = c("True PDF", "gCop Approx."),
+       fill = c("blue", "red"))
 par(oma = c(0,0,0,0)) # remove outer margin
 
 ```
@@ -397,3 +400,50 @@ Note that when $y_1 = y_2$, the endpoint matching method breaks down and the mea
 
 
 
+```{r, eval = FALSE, include = FALSE}
+# simulate data from unit Wishart distribution
+nsamples <- 1e5
+X <- replicate(nsamples, crossprod(matrix(rnorm(4),2,2)))
+
+# Cholesky decomposition
+Xchol <- apply(X, 3, function(V) chol(V)[upper.tri(V,diag = TRUE)]) 
+Xchol <- t(Xchol)
+
+# fit Gaussian Copula approximation
+gCop <- gcopFit(X = Xchol, # iid sample from multivariate distribution
+                fitXD = "kernel") # xDensity approximation to each margin
+
+# Compare approximation to true distribution of eigenvalues of X
+# eigenvalues of 2x2 matrix
+eig22 <- function(V) {
+  c1 <- V[1,1] + V[2,2] # trace
+  c2 <- V[1,1]*V[2,2] - V[1,2]^2 # determinant
+  c2 <- sqrt(.25 * c1^2 - c2)
+  c(.5 * c1 + c2, .5 * c1 - c2)
+}
+
+Xeig <- t(apply(X, 3, eig22)) # true distribution
+Xeig2 <- rgcop(nsamples, gCop = gCop) # Gaussian Copula approximation
+Xeig2 <- t(apply(Xeig2, 1, function(U) {
+  # recover full matrix
+  V <- matrix(0,2,2)
+  V[upper.tri(V,diag=TRUE)] <- U
+  V <- crossprod(V)
+  eig22(V)
+}))
+main = expression(lambda[1],lambda[2])
+
+par(mfrow = c(1,2), mar = c(2.5,2.5,2,.1)+.1, oma = c(0,2,0,0))
+for(ii in 1:2) {
+  dtrue <- density(Xeig[,ii])
+  dapprox <- density(Xeig2[,ii])
+  xlim <- range(dtrue$x, dapprox$x)
+  ylim <- range(dtrue$y, dapprox$y)
+  plot(dtrue$x, dtrue$y, type = "l", xlim = xlim, ylim = ylim,
+       main = main[ii], xlab = "", ylab = "")
+  lines(dapprox$x, dapprox$y, col = "red")
+}
+mtext(text = "Density",
+      side = 2, line = .5, outer = TRUE)
+par(oma = c(0,0,0,0)) # remove outer margin
+```

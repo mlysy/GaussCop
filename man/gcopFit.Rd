@@ -4,29 +4,29 @@
 \alias{gcopFit}
 \title{Fit a Gaussian Copula model.}
 \usage{
-gcopFit(X, Rho, fitXD = c("kernel", "gc4", "normal"), ...)
+gcopFit(X, Rho, fitXD = c("kernel", "gc4"), ...)
 }
 \arguments{
 \item{X}{Either an \code{N x p} data matrix or a \code{p}-length list of \code{XDens} objects.}
 
 \item{Rho}{\code{p x p} correlation matrix (i.e., 1's on the diagonal).  Optional if \code{X} is a matrix.}
 
-\item{fitXD}{String specifying method to fit marginals (see \code{\link{XDens}}).}
+\item{fitXD}{String specifying method to fit marginals (see \code{\link{xDensity}}).}
 
-\item{...}{Additional arguments to pass to the methods of \code{fitXD} (see \code{\link{XDens}}).}
+\item{...}{Additional arguments to pass to the methods of \code{fitXD} (see \code{\link{xDensity}}).}
 }
 \value{
-An object of class \code{gcop}, i.e., a list with elements:
+An object of class \code{gaussCop}, i.e., a list with elements:
 \describe{
-  \item{\code{XDens}}{A list of \code{xDens} objects specifying each marginal distribution (see \code{\link{xDens}}).}
+  \item{\code{XDens}}{A list of \code{xDensity} objects specifying each marginal distribution (see \code{\link{xDensity}}).}
   \item{\code{Rho}}{The correlation matrix between the normalized quantiles.}
 }
 }
 \description{
-Fit a Gaussian Copula model to be used for simulation and density calculation.
+Fit a Gaussian Copula model.
 }
 \examples{
-# simulate data and plot it 
+# simulate data and plot it
 n = 5e4
 dat = cbind(rnorm(n, mean = 1, sd = 3),
             rnorm(n, mean=4, sd = 0.5))
@@ -34,6 +34,6 @@ plot(dat, cex=0.5)
 # fit Gaussian Copula using Kernel method
 temp.cop = gcopFit(X = dat, fitXD = "kernel")
 # simulate data from Copula model and add it to plot, should blend in
-new.data = rgcop(100, temp.cop) 
+new.data = rgcop(100, temp.cop)
 points(new.data, cex = 0.5, col="red")
 }

@@ -2,24 +2,24 @@
 % Please edit documentation in R/powFit.R
 \name{powFit}
 \alias{powFit}
-\title{Maximum likelihood estimate of the generalized Box-Cox transform.}
+\title{Maximum likelihood estimation for the Generalized Box-Cox transformation.}
 \usage{
 powFit(x, alpha = NA, interval = c(-5, 5), ...)
 }
 \arguments{
-\item{x}{Vector of samples from density.}
+\item{x}{Vector of random samples from target density.}
 
-\item{alpha}{Optional value of the offset parameter.  \code{alpha = FALSE} sets \code{alpha = 1 - min(x)}, thereby guaranteeing that \code{z = x + alpha >= 1}.  This or any scalar value of \code{alpha} optimizes as a function of \code{lambda} only.  \code{alpha = NA} jointly optimizes for \code{lambda} and \code{alpha}.}
+\item{alpha}{Optional value of the offset parameter.  \code{alpha = FALSE} sets \code{alpha = 1 - min(x)}, thereby guaranteeing that \code{z = x + alpha >= 1}.  This or any scalar value of \code{alpha} finds the conditional MLE as a function of \code{lambda} only.  \code{alpha = NA} finds the joint MLE over \code{(lambda,alpha)}.}
 
 \item{interval}{Range of \code{lambda} values for one dimensional optimization.}
 
 \item{...}{Additional arguments to pass to \code{optimize} or \code{optim}, for 1- or 2-parameter optimization.}
 }
 \value{
-MLEs for \code{lambda} and possibly \code{alpha} as well.
+Vector of length two containing the fitted and/or known values of \code{(lambda, alpha)}.
 }
 \description{
-Maximum likelihood estimate of the generalized Box-Cox transform.
+Maximum likelihood estimation for the Generalized Box-Cox transformation.
 }
 \details{
 The likelihood for optimization is

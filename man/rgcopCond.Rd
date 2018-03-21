@@ -9,7 +9,7 @@ rgcopCond(n, gCop, XCond, iCond)
 \arguments{
 \item{n}{Integer number of random draws.}
 
-\item{gCop}{An object of class \code{gcop} describing the joint Gaussian Copula distribution on all variables.}
+\item{gCop}{An object of class \code{gaussCop} describing the joint Gaussian Copula distribution on all variables.}
 
 \item{XCond}{Vector or matrix; values of the variables on which to condition.}
 

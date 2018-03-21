@@ -11,27 +11,24 @@ dgc4(x, cmom, rm.neg = TRUE, log = FALSE)
 
 \item{cmom}{Vector of first 4 central moments of distribution.}
 
-\item{rm.neg}{Logical; if TRUE clips the density at smallest calculated non-negative value.}
+\item{rm.neg}{Logical; if \code{TRUE} clips the density at smallest calculated non-negative value.}
 
-\item{log}{Logical; if TRUE returns approximating density on log scale.}
+\item{log}{Logical; if \code{TRUE} returns approximating density on log scale.}
 }
 \value{
-Vector of pdf or log(pdf).
+Vector of density evaluations.
 }
 \description{
 Univariate 4th-order Gram-Charlier density approximation.
 }
 \examples{
-require(moments) # for finding moments
-df = 3
+df <- 3
 nsamples <- 100
-X <- rnorm(nsamples, df=df) # iid samples from the Chi-Sq(df)
+X <- rchisq(nsamples, df=df) # iid samples from the Chi-Sq(df)
 
-cm <- mean(X)
-cm <- c(cm, moment(X, order = 2),
-        moment(X, order = 3),
-        moment(X, order = 4))
-cmom <- cm
+# calculate central moments
+cmom <- mean(X)
+cmom <- c(cmom, mean((X-cmom)^2), mean((X-cmom)^3), mean((X-cmom)^4))
 
-dgc4(X, cmom = cmom, rm.neg = TRUE) 
+curve(dgc4(x, cmom = cmom, rm.neg = TRUE), from = 0, to = 10)
 }

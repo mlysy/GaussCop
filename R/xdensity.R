@@ -16,43 +16,27 @@
 #' @return For the underlying \code{xDensity} object, \code{dXD} gives the density, \code{pXD} gives the distribution function, \code{qXD} gives the quantile function and \code{rXD} generates \code{n} random values.
 #' @seealso \code{\link{matrixXD}}, \code{\link{kernelXD}}, \code{link{gc4XD}} for various \code{xDensity} object constructors.
 #' @examples
-#' nsamples <- 1e5
-#' X <- rnorm(nsamples) # generate data
-#' xDens <- kernelXD(X) # Use kernel constructor to construct xDens object
+#' # xDensity representation of a N(0,1) distribution
 #'
-#' # pdf and sampling check
-#' Xsim <- rXD(nsamples, xDens = xDens) # xDensity sampling using rXD
-#' hist(Xsim, breaks = 100, freq = FALSE,
-#'      xlab = "x", main = "PDF")
-#' curve(dXD(x, xDens = xDens), add = TRUE, col = "red") # xDensity PDF
-#' curve(dnorm(x), add = TRUE, col = "blue") # true PDF
-#' abline(v = xDens$xrng, lty = 2) # grid endpoints
-#' legend("topright", c("rXD", "dXD", "N(0,1)", "xRange"),
-#'        pch = c(22,22,22,NA), pt.cex = 1.5,
-#'        pt.bg = c("white", "red", "blue", "black"),
-#'        lty = c(NA, NA, NA, 2))
+#' # construct the xDensity object using the known PDF dnorm
+#' xseq <- seq(-4, 4, len = 500) # where to evaluate density
+#' xDens <- matrixXD(cbind(xseq, dnorm(xseq)))
 #'
-#' # cdf check
-#' curve(pXD(x, xDens), # xDensity CDF
-#'       from = min(Xsim), to = max(Xsim), col = "red",
-#'       xlab = "x", main = "CDF", ylab = "Cumulative Probability")
-#' curve(pnorm(x), add = TRUE, col = "blue") # true CDF
-#' abline(v = xDens$xrng, lty = 2) # grid endpoints
-#' legend("bottomright", c("pXD", "N(0,1)", "xRange"),
-#'        pch = c(22,22,NA), pt.cex = 1.5,
-#'        pt.bg = c("red", "blue", "black"),
-#'        lty = c(NA, NA, 2))
+#' # check random sampling
+#' x <- rXD(1e5, xDens = xDens)
+#' hist(x, breaks = 100, freq = FALSE)
+#' curve(dnorm, add = TRUE, col = "red")
 #'
-#' # quantile check
-#' curve(qXD(x, xDens), # xDensity quantile function
-#'       from = 0, to = 1, col = "red",
-#'       xlab = "Quantiles", main = "Quantile Plot", ylab = "x")
-#' curve(qnorm(x), add = TRUE, col = "blue") # true CDF
-#' legend("bottomright", c("qXD", "N(0, 1)"),
-#'        pch = c(22,22,NA), pt.cex = 1.5,
-#'        pt.bg = c("red", "blue"),
-#'        lty = c(NA, NA, 2))
-
+#' # check PDF
+#' x <- rnorm(5)
+#' rbind(true = dnorm(x, log = TRUE), xDens = dXD(x, xDens, log = TRUE))
+#'
+#' # check CDF
+#' rbind(true = pnorm(x, log = TRUE), xDens = pXD(x, xDens, log = TRUE))
+#'
+#' # check inverse-CDF
+#' probs <- runif(5)
+#' rbind(true = qnorm(probs), xDens = qXD(probs, xDens))
 #' @rdname xDensity
 #' @export
 dXD <- function(x, xDens, log = FALSE) {
@@ -141,4 +125,6 @@ qXD <- function(p, xDens, lower.tail = TRUE, log.p = FALSE) {
 rXD <- function(n, xDens) {
   qXD(p = runif(n), xDens = xDens)
 }
+
+#--- examples ------------------------------------------------------------------
 

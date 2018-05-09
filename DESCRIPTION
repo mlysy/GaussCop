@@ -2,7 +2,7 @@ Package: GaussCop
 Type: Package
 Title: Simulation, Inference, and Density Evaluation for the Gaussian Copula Distribution
 Version: 0.0.0.9006
-Date: 2018-03-21
+Date: 2018-05-09
 Authors@R: c(person("Martin", "Lysy", role = c("aut", "cre"),
                     email = "mlysy@uwaterloo.ca"),
              person("Jonathan", "Ramkissoon", role = "aut"))

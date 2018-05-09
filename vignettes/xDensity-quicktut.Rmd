@@ -118,14 +118,23 @@ xdens_test <- function(xDens, dtrue, ptrue, dname, dlpos, plpos) {
   invisible(par(op))
 }
 ```
-The `d/p/q/r` functions for `xDensity` objects are invoked by e.g., `dXD(x, xDens = xDens, log = TRUE)` as seen in the [Appendix](#apptest) **R** code for the test function `xdens_test`.  That is, consider the following graphical check of an `xDensity` approximation to the log-Exponential distribution $\log(X) \sim \tx{Expo}(1)$:
+The `d/p/q/r` functions for `xDensity` objects are invoked by e.g.:
+```{r, eval = FALSE}
+dXD(x, xDens = xDens, log = TRUE) # log-PDF
+pXD(x, xDens = xDens, lower.tail = FALSE) # survival function (1-CDF)
+qXD(p = .5, xDens = xDens) # median
+rXD(n, xDens = xDens) # random sample
+```
 
-1. Check that histogram of `rXD` sample matches `dXD` and the true PDF (recall that `rXD` calls `qXD` on `runif`).
-2. Check that `pXD` matches true CDF.
+To assess the quality of the `xDensity` approximation to the log-Exponential distribution $\log(X) \sim \tx{Expo}(1)$, consider the following checks:
 
-These graphical tests are implemented by `xdens_test` as illustrated below:
-```{r, fig.width = 10, fig.height = 4, out.width = "97%", echo = -1}
-#, fig.cap = "Accuracy test for `xDensity` approximation of `d/p/q/r` functions."}
+<!-- as seen in the [Appendix](#apptest) **R** code for the test function `xdens_test`.  That is, consider the following graphical check of an `xDensity` approximation to the log-Exponential distribution $\log(X) \sim \tx{Expo}(1)$: -->
+
+1. That the histogram of `rXD` sample matches `dXD` and the true PDF (recall that `rXD` calls `qXD` on `runif`).
+2. That `pXD` matches the true CDF.
+
+These graphical checks are implemented by the function `xdens_test` (**R** code in [Appendix](#apptest)) as illustrated below:
+```{r, fig.width = 10, fig.height = 4, out.width = "97%", fig.cap = "Graphical assessment of `xDensity` approximation to the log-Exponential distribution."}
 # check that xDensity d/p/q/r functions match the true distribution,
 # by plotting true PDF/CDF vs xDensity representation.
 
@@ -143,7 +152,7 @@ xdens_test(xDens, # xDensity approximation
 
 ## Constructors for `xDensity` Objects
 
-Package **`GaussCop`** currently implements three methods of constructing `xDensity` objects: two involve density estimation of a random sample $\rv X n \sim f(x)$, and the third, a functional approximation $\hat f(x)$, e.g., using a parametric model $f(x \mid \hat {\bm \theta})$, where $\hat{\bm \theta}$ is the parameter MLE.  
+The **`GaussCop`** package currently implements three methods of constructing `xDensity` objects.  Two take as input a random sample $\rv X n \sim f(x)$.  The third is based on a functional approximation $\hat f(x)$, e.g., as resulting from a parametric model $\hat f(x) = f(x \mid \hat {\bm \theta})$, where $\hat{\bm \theta}$ is the parameter MLE.  
 <!-- These methods are discussed and compared using the true distribution $X \sim \chi^2_{(4)}$. -->
 
 <!-- approximate densities using one of 3 methods: kernel density estimation, Gram-Charlier expansion or by using known a known sample-density matrix. These are discussed and compared using the $\chi^2_{(5)}$ distribution. An endpoint matching technique is used to describe the tails of the approximated densities with a Normal distribution. More about this can be found in [Appendix A: Endpoint Matching]. -->
@@ -151,9 +160,9 @@ Package **`GaussCop`** currently implements three methods of constructing `xDens
 
 ### Kernel Density Estimation
 
-The `kernelXD` function uses the `density` function in **R** to fit a Gaussian kernel to a random sample from $f(x)$. It is the most flexible constructor, however it also requires the most datapoints for stable estimation. Below is a comparison with $M$ iid samples from a $\chi^2_{(4)}$ distribution, using $M = 1000$ and $M = 10000$ data points.
+The `kernelXD` function uses the `stats::density` function to fit a Gaussian kernel to a random sample from $f(x)$. It is the most flexible constructor; however, it also requires the most datapoints for stable estimation. Below is a comparison with $M$ iid samples from a $\chi^2_{(4)}$ distribution, using $M = 1000$ and $M = 10000$ data points.
 
-```{r, fig.width = 10, fig.height = 4, out.width = "97%", fig.show = "hold"}
+```{r, fig.width = 10, fig.height = 4, out.width = "97%", fig.show = "hold", fig.cap = "Impact of sample size on quality of `kernelXD` approximation."}
 
 # true distribution: chi^2_(4)
 df_true <- 4
@@ -191,7 +200,7 @@ par(oma = c(0,0,0,0)) # remove outer margin
 
 The `gc4XD` constructor implements a moment-based density approximation, which works best for unimodal distributions that are not too far from normal.  The estimator proceeds in two steps:
 
-1.  The data are first normalized by applying a Box-Cox transformation to each observation $X_i$,
+1.  The data $\rv X n \iid f(x)$ are first normalized by applying a Box-Cox transformation to each observation $X_i$,
 $$Z_i = \tx{BoxCox}(X_i \| \hat \alpha, \hat \lambda), \qquad \tx{BoxCox}(x \| \alpha, \lambda) = \begin{cases} \frac{((x + \alpha)^\lambda - 1)}{(\lambda C^{\lambda-1})} & \lambda \neq 0 \\ C \log(x + \alpha) & \lambda = 0, \end{cases}
 $$
 where $(\hat \alpha, \hat \lambda)$ are obtained by maximum likelihood.
@@ -203,7 +212,7 @@ where $H_3(z) = z^3 - 3z$ and $H_4(z) = z^4 - 6z^2 + 3$ are the 3rd and 4th [Her
 
 The `gc4XD` constructor estimates the PDF of the data $\rv X n$ on the original scale by inverting steps 1 and 2 above. The example below illustrates the quality of the approximation for $M = 1000$ observations of $X \sim \chi^2_{(4)}$.
 
-```{r, echo = -1, fig.width = 10, fig.height = 4, out.width = "97%"}
+```{r, echo = -1, fig.width = 10, fig.height = 4, out.width = "97%", fig.cap = "`gc4XD` approximation with $M = 1000$ samples."}
 set.seed(1) # reproducible results
 nsamples <- 1e3
 X <- rtrue(nsamples)
@@ -216,12 +225,12 @@ xdens_test(xDens, dtrue = dtrue, ptrue = ptrue,
 
 ### Known Density Values
 
-The `matrixXD` is used to convert functional density representations into the standardized `xDensity` format. Its input is a 2-column matrix with equally-spaced $x$-grid values in the first column and corresponding density values in the second. 
+The `matrixXD` constructor is used to convert functional density representations into the standardized `xDensity` format. Its input is a 2-column matrix with equally-spaced $x$-grid values in the first column and corresponding density values in the second. 
 <!-- It essentially appends Normally distributed tails to a grid of known PDF densities.  -->
 <!-- Currently, this function does not accept zero-valued grid density endpoints.  -->
 Below is an illustration using the Student-$t$ distributions $X \sim t_{(2)}$ and $X \sim t_{(1)}$ (i.e., Cauchy) distributions. We can see that for extremely heavy-tailed distributions such as Cauchy, the normal approximation used by `xDensity` clearly undercuts tail probabilities.
 
-```{r, fig.width = 10, fig.height = 4, out.width = "97%", fig.show = "hold"}
+```{r, fig.width = 10, fig.height = 4, out.width = "97%", fig.show = "hold", fig.cap = "`matrixXD` approximation for $t_{(\\nu)}$ distributions with $\\nu = 1,2$."}
 # true distribution: t(2)
 dtrue <- list(t2 = function(x) dt(x, df = 2),
               Cauchy = function(x) dt(x, df = 1))
@@ -259,17 +268,19 @@ Thus, $c(\uu)$ is the joint PDF of marginally Uniform random variables, $U_i \si
 $$
 g(\zz) = c(\uu) \times \prod_{i=1}^n \varphi(z_i), \qquad u_i = \Phi(z_i).
 $$
-2.  Since marginally $Z_i \sim \N(0,1)$, the Gaussian Copula approximates the true distirbution $g(\zz)$ by the best-match multivariate normal in the sense of minimizing the [Kullback-Leibler divergence](https://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence),
+2.  Since marginally $Z_i \sim \N(0,1)$, the Gaussian Copula approximates the true distirbution $g(\zz)$ by the best-matching multivariate normal, in the sense of minimizing the [Kullback-Leibler divergence](https://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence),
 $$
 \hat g(\zz) = \argmin_{\RR} \int \log \left[\frac{g(\zz)}{\varphi(\zz \mid \RR)}\right] \cdot g(\zz) \ud \zz,
 $$
 where $\varphi(\zz \mid \RR)$ is the joint PDF of a multivariate normal $\N(0, \RR)$ with correlation matrix $\RR_{ii} = 1$.
 
-To evaluate the accuracy of the Gaussian Copula appromation, consider applying it to the $p(p+1)/2$-dimensional Cholesky decomposition of a $p\times p$ unit [Wishart distribution](),
+To evaluate the accuracy of the Gaussian Copula appromation, consider applying it to the $p(p+1)/2$-dimensional Cholesky decomposition of a "unit" $p\times p$ [Wishart distribution](),
 $$
-\XX_{p\times p} \sim \tx{Wishart}(\II, 1),
+\XX_{p\times p} \sim \tx{Wishart}(\II, p).
 $$
-where $\XX = \ZZ'\ZZ$ and $\ZZ$ is a $p\times p$ matrix of iid $\N(0,1)$.  By construction, the Gaussian Copula perfectly captures the marginal distributions of $\tx{chol}(\XX)$.  Therefore, consider the error on the marginal distributions of the eigenvalues of $\XX$, induced by approximating the copula dependence between the Cholesky variables as multivariate normal.  In the example below with $p = 4$, the error appears to be relatively small:
+That is, $\XX = \ZZ'\ZZ$ and $\ZZ$ is a $p\times p$ matrix of iid $\N(0,1)$.  
+
+By construction, the Gaussian Copula perfectly captures the marginal distributions of $\tx{chol}(\XX)$.  Therefore, consider the error on the marginal distributions of the eigenvalues of $\XX$, induced by approximating the copula dependence between the Cholesky variables as multivariate normal.  In the example below with $p = 4$, the error appears to be relatively small:
 ```{r eigen, cache = TRUE}
 # simulate data from unit Wishart distribution
 p <- 4 # size of matrix
@@ -301,7 +312,7 @@ Xeig2 <- t(apply(Xeig2, 1, function(U) {
   eig_val(V)
 }))
 ```
-```{r, fig.width = 10, fig.height = 2.5, out.width = "97%", fig.show = "hold"}
+```{r, fig.width = 10, fig.height = 2.5, out.width = "97%", fig.show = "hold", fig.cap = "Gaussian Copula approximation to the eigenvalues of $\\XX \\sim \\tx{Wishart}(\\II, 4)$, as fitted to $\\tx{chol}(\\XX)$."}
 # plot true and approximate eigenvalue distributions
 main <- parse(text = paste0("lambda[", 1:p, "]"))
 par(mfrow = c(1,p), mar = c(2.5,2.5,2,.1)+.1, oma = c(0,2,0,0))

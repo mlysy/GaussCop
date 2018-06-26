@@ -2,33 +2,51 @@
 % Please edit documentation in R/powFit.R
 \name{powTrans}
 \alias{powTrans}
-\title{Generalized Power (or Box-Cox) Transformation.}
+\title{Generalized Box-Cox transformation.}
 \usage{
-powTrans(x, lambda = 0, alpha = 0, normalize = FALSE, jacobian = FALSE,
-  debug = FALSE)
+powTrans(x, lambda = 0, alpha = 0, normalize = FALSE, jacobian = FALSE)
 }
 \arguments{
-\item{x}{Vector of values at which to compute the transformation.}
+\item{x}{Vector of quantiles at which to compute the transformation.}
 
-\item{lambda}{Exponent of the transformation.  See details.}
+\item{lambda}{Exponent of the transformation.  See Details.}
 
-\item{alpha}{Offset of the transformation.  See details.}
+\item{alpha}{Offset of the transformation.  See Details.}
 
-\item{normalize}{Logical; if TRUE divides by the geometric mean.  See details.}
+\item{normalize}{Logical; if \code{TRUE} divides by the geometric mean.  See Details.}
 
-\item{jacobian}{Logical; if TRUE calculates the Jacobian \code{|dz / dx|}, which converts transformed density values back to the original scale.}
+\item{jacobian}{Logical; if \code{TRUE} calculates the Jacobian \code{|dz / dx|}, which converts transformed density values back to the original scale.}
 }
 \value{
-The vector \code{z} of transformed values, and optionally the Jacobian of the inverse transformation.  See details.
+The vector \code{z} of transformed values, and optionally the Jacobian of the inverse transformation.  See Details.
 }
 \description{
-Generalized Power (or Box-Cox) Transformation.
+Generalized Box-Cox transformation.
 }
 \details{
 The Generalized Power or Box-Cox transformation is
-\deqn{\code{z = ((x + alpha)^lambda - 1) / (lambda * C^(lambda-1))}, \code{lambda != 0},}
-\deqn{\code{z = C * log(x + alpha)}, \code{lambda == 0},}
-where \code{C} is the Geometric mean:
-\deqn{\code{C = exp(mean(log(x + alpha)))}.}
-Note that \code{C} is only calculated if \code{normalize = TRUE}.
+\deqn{
+z = \begin{array}{rl} ((x + \alpha)^\lambda - 1) / (\lambda C^{\lambda-1}) & \lambda \neq 0 \\ C \log(x + \alpha) & \lambda = 0, \end{array}
+}{
+z = \begin{array}{rl} ((x + \alpha)^\lambda - 1) / (\lambda C^{\lambda-1}) & \lambda \neq 0 \\ C \log(x + \alpha) & \lambda = 0, \end{array}
+}
+
+where \eqn{C}{C} is the Geometric mean, i.e., \code{C = exp(mean(log(x + alpha)))}.  Note that \code{C} is only calculated if \code{normalize = TRUE}.
+}
+\examples{
+# generate data and plot
+# apply power transform and superimpose on plot
+# finally, superimpose N(0, 1) on plot
+n <- 1e5
+df <- 5
+X <- rchisq(n, df = df)
+xdens <- kernelXD(X)
+xdens.trans <- kernelXD(powTrans(X))
+# plots
+curve(dnorm(x), col = "blue", xlim=c(-5, 5), ylim = c(0,0.7)) # true PDF
+curve(dXD(x, xDens = xdens), add = TRUE, col = "red") # xDensity PDF
+curve(dXD(x, xDens = xdens.trans), add = TRUE, col = "black") # xDensity PDF
+legend("topleft", c("N(0, 1", "Chi-Sq(4)", "Power Trans"),
+       pch = c(22,22,22,NA), pt.cex = 1.5,
+       pt.bg = c("blue", "red", "black"))
 }

@@ -5,3 +5,4 @@ README.md
 LICENSE
 vignettes/xDensity-quicktut_files
 vignettes/xDensity-quicktut_cache
+tests/dontrun

@@ -274,7 +274,7 @@ $$
 $$
 where $\varphi(\zz \mid \RR)$ is the joint PDF of a multivariate normal $\N(0, \RR)$ with correlation matrix $\RR_{ii} = 1$.
 
-To evaluate the accuracy of the Gaussian Copula appromation, consider applying it to the $p(p+1)/2$-dimensional Cholesky decomposition of a "unit" $p\times p$ [Wishart distribution](),
+To evaluate the accuracy of the Gaussian Copula appromation, consider applying it to the $p(p+1)/2$-dimensional Cholesky decomposition of a "unit" $p\times p$ [Wishart distribution](https://en.wikipedia.org/wiki/Wishart_distribution),
 $$
 \XX_{p\times p} \sim \tx{Wishart}(\II, p).
 $$

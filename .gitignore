@@ -7,6 +7,7 @@
 # R
 *.Rhistory
 *.Rapp.history
-inst/doc
+vignettes/xDensity-quicktut_files
+vignettes/xDensity-quicktut_cache
 # osx
 *.DS_Store

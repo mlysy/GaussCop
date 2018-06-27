@@ -1,77 +1,130 @@
-#' Extend a Matrix Representation of a Density to an \code{xDens} Object
+#' Implementation of \code{d/p/q/r} functions for \code{xDensity} distributions.
 #'
-#' @param XY 2-column matrix representation of a univariate density.  The first column is a grid of x values giving the centers of bins.   The second column are the corresponding densities.
-#' @param mean,sd Optional mean and standard deviation of the normal to use outside the grid values in \code{XY}.  Defaults to grid-based approximation using \code{XY}.
-#' @return An \code{xDens} object.  See \code{\link{xDens}}.
+#' @name xDensity
+#' @param x,q Vector of quantiles.
+#' @param p Vector of probabilities.
+#' @param n Number of observations.
+#' @param xDens Object of class \code{xDensity} representing the distribution.
+#' @param log,log.p Logical; if \code{TRUE}, probabilities \code{p} are given as \code{log(p)}.
+#' @param lower.tail Logical; if \code{TRUE} (default), probabilities are \code{P[X <= x]} otherwise, \code{P[X > x]}.
+#' @details Extended density (or \code{xDensity}) objects provide a compact representation of arbitrary one-dimensional distributions defined on the real line.  That is, an \code{xDensity} object is a list with the following elements:
+#' \itemize{
+#'   \item \code{xrng}, \code{ndens}: range and number of gridpoints defining the main density region, i.e. \code{xseq = seq(xrng[1], xrng[2], len = xn)}.
+#'   \item \code{ypdf}, \code{ylpdf}, \code{ycdf}: density, log-density, and cdf on the grid.
+#'   \item \code{mean}, \code{sd}: mean and standard deviation of a Normal distribution to use outside the specified density range.
+#' }
+#' @return For the underlying \code{xDensity} object, \code{dXD} gives the density, \code{pXD} gives the distribution function, \code{qXD} gives the quantile function and \code{rXD} generates \code{n} random values.
+#' @seealso \code{\link{matrixXD}}, \code{\link{kernelXD}}, \code{link{gc4XD}} for various \code{xDensity} object constructors.
+#' @examples
+#' # xDensity representation of a N(0,1) distribution
+#'
+#' # construct the xDensity object using the known PDF dnorm
+#' xseq <- seq(-4, 4, len = 500) # where to evaluate density
+#' xDens <- matrixXD(cbind(xseq, dnorm(xseq)))
+#'
+#' # check random sampling
+#' x <- rXD(1e5, xDens = xDens)
+#' hist(x, breaks = 100, freq = FALSE)
+#' curve(dnorm, add = TRUE, col = "red")
+#'
+#' # check PDF
+#' x <- rnorm(5)
+#' rbind(true = dnorm(x, log = TRUE), xDens = dXD(x, xDens, log = TRUE))
+#'
+#' # check CDF
+#' rbind(true = pnorm(x, log = TRUE), xDens = pXD(x, xDens, log = TRUE))
+#'
+#' # check inverse-CDF
+#' probs <- runif(5)
+#' rbind(true = qnorm(probs), xDens = qXD(probs, xDens))
+#' @rdname xDensity
 #' @export
-xdensity <- function(XY, mean, sd) {
-  #sd.infl <- 1/5 # should eventually remove this...
-  sd.infl <- 1
-  xgrid <- XY[,1]
-  # check for regular grid
-  dx <- diff(xgrid)
-  if(stats::sd(dx)/base::mean(dx) > 1e-6) {
-    stop("First column of XY must be a regular grid.")
-  }
-  ndens <- length(xgrid)
-  dx <- dx[1]
-  xrng <- range(xgrid) + c(-.5, .5) * dx
-  ypdf <- XY[,2]
-  # mean and sd
-  if(missing(mean)) {
-    mean <- sum(xgrid*ypdf)*dx
-  }
-  if(missing(sd)) {
-    sd <- sqrt(sum((xgrid - mean)^2*ypdf)*dx) * sd.infl
-  }
-  # tail probability not contained in dens estimate
-  tprob <- pnorm(abs(xrng - mean)/sd, lower.tail = FALSE)
-  # renormalize ypdf
-  ypdf <- ypdf/sum(ypdf*dx)*(1-sum(tprob))
-  ycdf <- cumsum(c(tprob[1], ypdf*dx))
-  ylpdf <- log(ypdf)
-  xDens <- list(ndens = ndens, xrng = xrng, ypdf = ypdf, ylpdf = ylpdf,
-                ycdf = ycdf, mean = mean, sd = sd)
-  class(xDens) <- "xDens"
-  xDens
+dXD <- function(x, xDens, log = FALSE) {
+  if(class(xDens) != "xDensity") stop("xDens must be an xDensity object.")
+  # extract components
+  xrng <- xDens$xrng
+  ndens <- xDens$ndens
+  dx <- (xrng[2]-xrng[1])/ndens
+  ylpdf <- xDens$ylpdf
+  mean <- xDens$mean
+  sd <- xDens$sd
+  # calculate pdf
+  ind <- (x - xrng[1])%/%dx + 1
+  iind <- pmax(pmin(ind, ndens), 1)
+  ans <- ifelse(1 <= ind & ind <= ndens,
+                ylpdf[iind],
+                dnorm(x, mean = mean, sd = sd, log = TRUE))
+  if(!log) ans <- exp(ans)
+  ans
 }
 
-#' Extended Kernel Density Approximation
-#'
-#' @param x vector of samples from the underlying distribution.
-#' @param n,from,to optional arguments to \code{\link{stat::density}} which are used to set the grid on which to evaluate the kernel estimator.
-#' @param mean,sd optional mean and standard deviation arguments for the extended density.  Default to the mean and standard deviation of \code{x}.
-#' @param any0 logical; if FALSE forces the support of the density to be the real line.
-#' @param ... additional arguments to \code{\link{stat::density}}.
-#' @return an \code{xDens} object.
+#' @rdname xDensity
 #' @export
-kernelXD <- function(x, n = 512, from, to, mean, sd, any0 = FALSE, ...) {
-  dens <- density(x, n = n, from = from, to = to, ...)
-  XY <- cbind(x = dens$x, y = dens$y)
-  if(!any0) {
-    # set zero's to smallest positive value
-    XY[,2] <- pmax(XY[,2], min(XY[XY[,2] > 0,2]))
+pXD <- function(q, xDens, lower.tail = TRUE, log.p = FALSE) {
+  if(class(xDens) != "xDensity") stop("xDens must be an xDensity object.")
+  # extract components
+  xrng <- xDens$xrng
+  ndens <- xDens$ndens
+  dx <- (xrng[2]-xrng[1])/ndens
+  ypdf <- xDens$ypdf
+  ycdf <- xDens$ycdf
+  mean <- xDens$mean
+  sd <- xDens$sd
+  # calculate cdf
+  ind <- (q - xrng[1])%/%dx + 1
+  iind <- pmax(pmin(ind, ndens), 1)
+  frac <- (q - xrng[1])%%dx
+  if(lower.tail) {
+    ans <- ifelse(1 <= ind & ind <= ndens,
+                  ycdf[iind] + frac*ypdf[iind],
+                  pnorm(q, mean = mean, sd = sd))
+  } else {
+    ans <- ifelse(1 <= ind & ind <= ndens,
+                  1 - (ycdf[iind] + frac*ypdf[iind]),
+                  pnorm(q, mean = mean, sd = sd, lower.tail = FALSE))
   }
-  xdensity(XY = XY, mean = mean, sd = sd)
+  if(log.p) ans <- log(ans)
+  ans
 }
 
-#' Normal Extended Density.
-#'
-#' @param x vector of samples to which to fit the normal distribution.
-#' @param n,from,to optional arguments to set up the grid on which to store the density estimate.
-#' @param mean,sd optional mean and standard deviation arguments for the extended density.  Default to the mean and standard deviation of \code{x}.
-#' @return an \code{xDens} object.
+#' @rdname xDensity
 #' @export
-normalXD <- function(x, n = 512, from, to, mean, sd) {
-  if(missing(from) | missing(to)) {
-    bw <- bw.nrd0(x) * 3
-    if(missing(from)) from <- min(x) - bw
-    if(missing(to)) to <- max(x) + bw
-  }
-  if(missing(mean)) mean <- base::mean(x)
-  if(missing(sd)) sd <- stats::sd(x)
-  xgrid <- seq(from, to, len = n)
-  xdensity(XY = cbind(x = xgrid,
-             y = dnorm(x = xgrid, mean = mean, sd = sd)),
-           mean = mean, sd = sd)
+qXD <- function(p, xDens, lower.tail = TRUE, log.p = FALSE) {
+  if(class(xDens) != "xDensity") stop("xDens must be an xDensity object.")
+  # extract components
+  ycdf <- xDens$ycdf
+  xrng <- xDens$xrng
+  ndens <- xDens$ndens
+  dx <- (xrng[2]-xrng[1])/ndens
+  xgrid <- seq(xrng[1]+.5*dx, xrng[2]-.5*dx, len = ndens)
+  mean <- xDens$mean
+  sd <- xDens$sd
+  # calculate quantiles
+  if(log.p) p <- exp(p)
+  if(!lower.tail) p <- 1-p
+  tmp <- pmax(pmin(c(0, ycdf, 1), 1), 0)
+  tmpi <- !duplicated(tmp)
+  #ind <- as.numeric(cut(p, breaks = tmp[tmpi])) - 1
+  ind <- findInterval(x = p, vec = tmp[tmpi]) - 1
+  iind <- pmax(pmin(ind, sum(tmpi)-3), 1)
+  Dy <- diff(ycdf[tmpi])[iind]
+  PDy <- p - ycdf[tmpi][iind]
+  ans <- ifelse(1 <= ind & ind <= sum(tmpi)-3,
+                xgrid[tmpi][iind] + (PDy/Dy - 1/2)*dx,
+                qnorm(p, mean = mean, sd = sd))
+  #badp <- p < 0 | p > 1
+  #if(any(badp)) {
+  #  ans[badp] <- NaN
+  #  warning("NaNs produced")
+  #}
+  ans
 }
+
+#' @rdname xDensity
+#' @export
+rXD <- function(n, xDens) {
+  qXD(p = runif(n), xDens = xDens)
+}
+
+#--- examples ------------------------------------------------------------------
+

@@ -2,18 +2,38 @@
 % Please edit documentation in R/gcopSub.R
 \name{gcopSub}
 \alias{gcopSub}
-\title{Marginal subset of a gcop object.}
+\title{Extract a subset of variables from a Gaussian Copula distribution.}
 \usage{
 gcopSub(gCop, subset)
 }
 \arguments{
-\item{gCop}{A \code{gcop} object.}
+\item{gCop}{A \code{gaussCop} object (see \code{\link{gcopFit}}).}
 
-\item{subset}{Vector specifying which subset of variables to keep.  Default is all.}
+\item{subset}{Integer or logical vector specifying which subset of variables to keep. Default is to keep all variables.}
 }
 \value{
-A \code{gcop} with variables possibly removed.
+A \code{gaussCop} object representing the marginal Gaussian Copula distribution on the subset of variables.
 }
 \description{
-Marginal subset of a gcop object.
+Extract a subset of variables from a Gaussian Copula distribution.
+}
+\examples{
+# simulate data
+n <- 5e4
+X <- cbind(rnorm(n, mean = 1, sd = 3),
+           rnorm(n, mean=4, sd = 0.5),
+           rt(n, df = 10),
+           rchisq(n, df = 5),
+           rnorm(n, mean=10, sd = 10))
+# fit Gaussian Copula using Kernel method
+gCop <- gcopFit(X, fitXD = "kernel")
+# subset gCop
+isub <- sample(5, 3) # subset
+gCop.sub <- gcopSub(gCop, subset = isub)
+# check that subsetted xDensity representations are the same
+for(ii in 1:3) {
+  print(identical(gCop$XDens[[isub[ii]]], gCop.sub$XDens[[ii]]))
+}
+# check that subsetted correlation matrix is the same
+print(identical(gCop$Rho[isub,isub], gCop.sub$Rho))
 }

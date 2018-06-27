@@ -2,29 +2,38 @@
 % Please edit documentation in R/gcopFit.R
 \name{gcopFit}
 \alias{gcopFit}
-\title{Fit a Gaussian Copula Model.}
+\title{Fit a Gaussian Copula model.}
 \usage{
-gcopFit(X, Rho, fitXD = c("kernel", "gc4", "normal"), ...)
+gcopFit(X, Rho, fitXD = c("kernel", "gc4"), ...)
 }
 \arguments{
-\item{X}{either an \code{N x p} data matrix or a \code{p}-length list of \code{XDens} objects.}
+\item{X}{Either an \code{N x p} data matrix or a \code{p}-length list of \code{XDens} objects.}
 
 \item{Rho}{\code{p x p} correlation matrix (i.e., 1's on the diagonal).  Optional if \code{X} is a matrix.}
 
-\item{fitXD}{string specifying method to fit marginals (see details).}
+\item{fitXD}{String specifying method to fit marginals (see \code{\link{xDensity}}).}
 
-\item{...}{additional arguments to pass to the methods of \code{fitXD} (see details).}
+\item{...}{Additional arguments to pass to the methods of \code{fitXD} (see \code{\link{xDensity}}).}
 }
 \value{
-An object of class \code{gcop} (see details).
+An object of class \code{gaussCop}, i.e., a list with elements:
+\describe{
+  \item{\code{XDens}}{A list of \code{xDensity} objects specifying each marginal distribution (see \code{\link{xDensity}}).}
+  \item{\code{Rho}}{The correlation matrix between the normalized quantiles.}
+}
 }
 \description{
-Fit a Gaussian Copula Model.
+Fit a Gaussian Copula model.
 }
-\details{
-A \code{gcop} object is a list with elements:
-\itemize{
-  \item \code{XDens}: a list of \code{xDens} objects specifying each marginal distribution (see \code{\link{xDens}}).
-  \item \code{Rho}: the correlation matrix between the normalized quantiles.
-}
+\examples{
+# simulate data and plot it
+n = 5e4
+dat = cbind(rnorm(n, mean = 1, sd = 3),
+            rnorm(n, mean=4, sd = 0.5))
+plot(dat, cex=0.5)
+# fit Gaussian Copula using Kernel method
+temp.cop = gcopFit(X = dat, fitXD = "kernel")
+# simulate data from Copula model and add it to plot, should blend in
+new.data = rgcop(100, temp.cop)
+points(new.data, cex = 0.5, col="red")
 }

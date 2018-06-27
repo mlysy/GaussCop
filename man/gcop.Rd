@@ -4,7 +4,7 @@
 \alias{gcop}
 \alias{dgcop}
 \alias{rgcop}
-\title{The Gaussian Copula Distribution.}
+\title{The Gaussian Copula distribution.}
 \usage{
 dgcop(X, gCop, log = FALSE, decomp = FALSE)
 
@@ -13,22 +13,24 @@ rgcop(n, gCop)
 \arguments{
 \item{X}{\code{n x p} values at which to evaluate the \code{p}-dimensional density.}
 
-\item{gCop}{the \code{gcop} model specification.}
+\item{gCop}{An object of class \code{gaussCop} specifying the Gaussian Copula model.}
 
-\item{decomp}{logical; if TRUE returns the normalized residuals \code{Z}, their log-density \code{zlpdf}, and the log-jacobian \code{zljac}, such that the total log-density is \code{xldens = zldens + zljac}.  See details.}
+\item{log}{Logical; whether or not to evaluate the density on the log scale.}
 
-\item{n}{number of random samples to draw.}
+\item{decomp}{Logical; if \code{TRUE} returns the normalized residuals \code{Z}, their log-density \code{zlpdf}, and the log-jacobian \code{zljac}, such that the total log-density is \code{xldens = zldens + zljac}.  See Details.}
+
+\item{n}{Number of random samples to draw.}
 }
 \value{
-A vector of densities or matrix of random samples.
+\code{dgcop} provides the density of \code{gCop}, \code{rgcop} generates random values from \code{gCop}.
 }
 \description{
-The Gaussian Copula Distribution.
+The Gaussian Copula distribution.
 }
 \details{
 The density of Gaussian Copula distribution is
 \deqn{
-g(x) = \frac{\psi(z \mid \Rho) \prod_{i=1}^d f_i(x_i)}{\prod_{i=1}^d\phi(z_i)},
+g(x) = \frac{\psi(z \mid R) \prod_{i=1}^d f_i(x_i)}{\prod_{i=1}^d\phi(z_i)},
 }{
 g(x) = \psi(z | R) \prod_{i=1}^d f_i(x_i)/\phi(z_i),
 }
@@ -37,5 +39,20 @@ z_i = \Phi^{-1}(F_i(x_i)),
 }{
 z_i = \Phi^(-1)(F_i(x_i)),
 }
-where \eqn{\psi(z \mid \Rho)}{\psi(z | R)} is the PDF of a multivariate normal with mean 0 and variance \eqn{\Rho}{R}, \eqn{f_i(x_i)} and \eqn{F_i(x_i)} are the marginal PDF and CDF of variable \eqn{i}, and \eqn{\phi(z)} and \eqn{\Phi(z)} are the PDF and CDF of a standard normal.
+where \eqn{\psi(z \mid R)}{\psi(z | R)} is the PDF of a multivariate normal with mean 0 and variance \eqn{R}{R}, \eqn{f_i(x_i)} and \eqn{F_i(x_i)} are the marginal PDF and CDF of variable \eqn{i}, and \eqn{\phi(z)} and \eqn{\Phi(z)} are the PDF and CDF of a standard normal.
+}
+\examples{
+# simulate data and plot it
+n = 5e4
+dat = cbind(rnorm(n, mean = 1, sd = 3),
+            rnorm(n, mean=4, sd = 0.5))
+plot(dat, cex=0.5)
+# fit Gaussian Copula
+temp.cop = gcopFit(X = dat, fitXD = "kernel")
+# simulate data from Copula model and add it to plot, should blend in
+new.data = rgcop(100, temp.cop)
+points(new.data, cex = 0.5, col="red")
+}
+\seealso{
+\code{\link{gcopFit}} for constructing \code{gaussCop} objects and fitting the Gaussian Copula model to observed data.
 }

@@ -1,15 +1,12 @@
 Package: GaussCop
 Type: Package
-Title: Simulation, Inference, and Density Evaluation for the Gaussian Copula Distribution
-Version: 0.0.0.9006
-Date: 2018-05-09
+Title: Utilities for the Gaussian Copula Distribution
+Version: 0.9
+Date: 2018-06-27
 Authors@R: c(person("Martin", "Lysy", role = c("aut", "cre"),
                     email = "mlysy@uwaterloo.ca"),
              person("Jonathan", "Ramkissoon", role = "aut"))
-Description: Provides a representation of a Gaussian Copula distribution to
-    efficiently work with arbitrary margins. Fitting of these margins is done
-    by kernel smoothing or a combined Box-Cox and Gram-Charlier approximation.
-    Functions are also provided for density evaluation and random sampling.
+Description: Provides functions for density evaluation and both joint and conditional random sampling from a Gaussian Copula distribution with arbitrary margins. This is achieved by storing univariate marginal distributions as extended density ('xDensity') objects which provide 'd/p/q/r methods', and which can be estimated from data using a variety of parametric, nonparametric, and semiparametric approaches.
 License: GPL-3
 RoxygenNote: 6.0.1
 Imports: stats

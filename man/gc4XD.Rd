@@ -4,8 +4,8 @@
 \alias{gc4XD}
 \title{Construct an \code{xDensity} representation of a combined Box-Cox/Gram-Charlier density approximation.}
 \usage{
-gc4XD(x, lambda = NULL, alpha = 0, cmom = NULL, trim = 0.01, n = 512,
-  from, to, mean, sd, ...)
+gc4XD(x, lambda = NULL, alpha = 0, cmom = NULL, trim = 0.01,
+  n = 512, from, to, mean, sd, ...)
 }
 \arguments{
 \item{x}{Vector of random samples from density to approximate.}

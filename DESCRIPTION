@@ -8,7 +8,8 @@ Authors@R: c(person("Martin", "Lysy", role = c("aut", "cre"),
              person("Jonathan", "Ramkissoon", role = "aut"))
 Description: Provides functions for density evaluation and both joint and conditional random sampling from a Gaussian Copula distribution with arbitrary margins. This is achieved by storing univariate marginal distributions as extended density ('xDensity') objects which provide 'd/p/q/r methods', and which can be estimated from data using a variety of parametric, nonparametric, and semiparametric approaches.
 License: GPL-3
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.0
+Encoding: UTF-8
 Imports: stats
 Suggests: knitr, rmarkdown
 VignetteBuilder: knitr

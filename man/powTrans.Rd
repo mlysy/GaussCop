@@ -4,7 +4,8 @@
 \alias{powTrans}
 \title{Generalized Box-Cox transformation.}
 \usage{
-powTrans(x, lambda = 0, alpha = 0, normalize = FALSE, jacobian = FALSE)
+powTrans(x, lambda = 0, alpha = 0, normalize = FALSE,
+  jacobian = FALSE)
 }
 \arguments{
 \item{x}{Vector of quantiles at which to compute the transformation.}

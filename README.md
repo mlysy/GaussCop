@@ -12,8 +12,8 @@ Provides functions for density evaluation and both joint and conditional random 
 
 ### Installation
 
-Install the **R** [**`devtools`**](https://CRAN.R-project.org/package=devtools) package and run
-```{r}
+Install the R package [devtools](https://CRAN.R-project.org/package=devtools) and run
+```r
 devtools::install_github("mlysy/GaussCop")
 ```
 

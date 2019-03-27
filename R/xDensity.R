@@ -14,7 +14,7 @@
 #'   \item \code{mean}, \code{sd}: mean and standard deviation of a Normal distribution to use outside the specified density range.
 #' }
 #' @return For the underlying \code{xDensity} object, \code{dXD} gives the density, \code{pXD} gives the distribution function, \code{qXD} gives the quantile function and \code{rXD} generates \code{n} random values.
-#' @seealso \code{\link{matrixXD}}, \code{\link{kernelXD}}, \code{link{gc4XD}} for various \code{xDensity} object constructors.
+#' @seealso \code{\link{matrixXD}}, \code{\link{kernelXD}}, \code{\link{gc4XD}} for various \code{xDensity} object constructors.
 #' @examples
 #' # xDensity representation of a N(0,1) distribution
 #'

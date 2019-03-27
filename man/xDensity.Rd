@@ -67,5 +67,5 @@ probs <- runif(5)
 rbind(true = qnorm(probs), xDens = qXD(probs, xDens))
 }
 \seealso{
-\code{\link{matrixXD}}, \code{\link{kernelXD}}, \code{link{gc4XD}} for various \code{xDensity} object constructors.
+\code{\link{matrixXD}}, \code{\link{kernelXD}}, \code{\link{gc4XD}} for various \code{xDensity} object constructors.
 }

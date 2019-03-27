@@ -1,10 +1,5 @@
 ^Meta$
 ^doc$
-setup.R
-test.R
-TODO.md
-README.md
-LICENSE
-vignettes/xDensity-quicktut_files
-vignettes/xDensity-quicktut_cache
-tests/dontrun
+^README\.md$
+^LICENSE$
+^tests/dontrun$

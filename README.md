@@ -2,8 +2,6 @@
 
 *Martin Lysy, Jonathan Ramkissoon*
 
-*June 26, 2018*
-
 ---
 
 ### Description
@@ -12,11 +10,11 @@ Provides functions for density evaluation and both joint and conditional random 
 
 ### Installation
 
-Install the R package [devtools](https://CRAN.R-project.org/package=devtools) and run
+Install the R package [**devtools**](https://CRAN.R-project.org/package=devtools) and run
 ```r
 devtools::install_github("mlysy/GaussCop")
 ```
 
 ### Usage
 
-An overview of the `xDensity` class and other package utilities is provided in this [vignette](http://htmlpreview.github.com/?https://github.com/mlysy/GaussCop/master/inst/doc/xDensity-quicktut.html).
+An overview of the `GaussCop::xDensity` class and other package utilities is provided in the package vignette: `vignette("xDensity-quicktut")`.

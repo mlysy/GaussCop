@@ -9,7 +9,8 @@ doc
 # R
 *.Rhistory
 *.Rapp.history
-vignettes/xDensity-quicktut_files
-vignettes/xDensity-quicktut_cache
 # osx
 *.DS_Store
+
+# unignore vignettes in doc
+!doc

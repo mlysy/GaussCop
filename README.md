@@ -17,4 +17,4 @@ devtools::install_github("mlysy/GaussCop")
 
 ### Usage
 
-An overview of the `GaussCop::xDensity` class and other package utilities is provided in the package vignette: `vignette("xDensity-quicktut")`.
+An overview of the `GaussCop::xDensity` class and other package utilities is provided in the package [vignette](http://htmlpreview.github.io/?https://github.com/mlysy/GaussCop/master/doc/xDensity-quicktut.html).

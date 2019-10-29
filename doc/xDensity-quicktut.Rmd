@@ -24,7 +24,7 @@ rmarkdown::render("xDensity-quicktut.Rmd")
 <!-- Latex commands -->
 \newcommand{\bm}[1]{\boldsymbol{#1}}
 \newcommand{\tx}[1]{\mathrm{#1}}
-\newcommand{\rv}[3][1]{#2_{#1},\ldots,#2_{#3}}
+\newcommand{\rv}[3]{#2_{#1},\ldots,#2_{#3}}
 \newcommand{\XX}{{\bm X}}
 \newcommand{\xx}{{\bm x}}
 \newcommand{\zz}{{\bm z}}
@@ -59,7 +59,7 @@ Let $X$ denote an unbounded, continuous random variable with PDF $X \sim f(x)$. 
 ### Basic Usage
 
 
-`xDensity` objects  can be constructed either from iid samples $\rv X n \iid f(x)$ or from a functional representation of $f(x)$ itself.  For example, consider the following `xDensity` representation based on a random sample from the log-Exponential distribution,
+`xDensity` objects  can be constructed either from iid samples $\rv 1 X n \iid f(x)$ or from a functional representation of $f(x)$ itself.  For example, consider the following `xDensity` representation based on a random sample from the log-Exponential distribution,
 $$
 \log(X) \sim \tx{Expo}(1) \qquad \iff \qquad f(x) = \exp(-e^x + x).
 $$
@@ -152,7 +152,7 @@ xdens_test(xDens, # xDensity approximation
 
 ## Constructors for `xDensity` Objects
 
-The **GaussCop** package currently implements three methods of constructing `xDensity` objects.  Two take as input a random sample $\rv X n \sim f(x)$.  The third is based on a functional approximation $\hat f(x)$, e.g., as resulting from a parametric model $\hat f(x) = f(x \mid \hat {\bm \theta})$, where $\hat{\bm \theta}$ is the parameter MLE.  
+The **GaussCop** package currently implements three methods of constructing `xDensity` objects.  Two take as input a random sample $\rv 1 X n \sim f(x)$.  The third is based on a functional approximation $\hat f(x)$, e.g., as resulting from a parametric model $\hat f(x) = f(x \mid \hat {\bm \theta})$, where $\hat{\bm \theta}$ is the parameter MLE.  
 <!-- These methods are discussed and compared using the true distribution $X \sim \chi^2_{(4)}$. -->
 
 <!-- approximate densities using one of 3 methods: kernel density estimation, Gram-Charlier expansion or by using known a known sample-density matrix. These are discussed and compared using the $\chi^2_{(5)}$ distribution. An endpoint matching technique is used to describe the tails of the approximated densities with a Normal distribution. More about this can be found in [Appendix A: Endpoint Matching]. -->
@@ -200,17 +200,17 @@ par(oma = c(0,0,0,0)) # remove outer margin
 
 The `gc4XD()` constructor implements a moment-based density approximation, which works best for unimodal distributions that are not too far from normal.  The estimator proceeds in two steps:
 
-1.  The data $\rv X n \iid f(x)$ are first normalized by applying a Box-Cox transformation to each observation $X_i$,
+1.  The data $\rv 1 X n \iid f(x)$ are first normalized by applying a Box-Cox transformation to each observation $X_i$,
 $$Z_i = \tx{BoxCox}(X_i \| \hat \alpha, \hat \lambda), \qquad \tx{BoxCox}(x \| \alpha, \lambda) = \begin{cases} \frac{((x + \alpha)^\lambda - 1)}{(\lambda C^{\lambda-1})} & \lambda \neq 0 \\ C \log(x + \alpha) & \lambda = 0, \end{cases}
 $$
 where $(\hat \alpha, \hat \lambda)$ are obtained by maximum likelihood.
-2.  The transformed data $\rv Z n$ are then fit with a 4th order  [Gram-Charlier expansion](https://en.wikipedia.org/wiki/Edgeworth_series) [e.g., @draper.tierney72].  That is, let $\hat \mu$, $\hat \sigma$, $\hat \kappa_3$, and $\hat \kappa_4$ denote the sample-based estimates of the first four [cumulants](https://en.wikipedia.org/wiki/Cumulant) of $Z = \tx{BoxCox}(X \| \hat \alpha, \hat \lambda)$.  The 4th order Gram-Charlier approximation to the true PDF $f(z)$ is
+2.  The transformed data $\rv 1 Z n$ are then fit with a 4th order  [Gram-Charlier expansion](https://en.wikipedia.org/wiki/Edgeworth_series) [e.g., @draper.tierney72].  That is, let $\hat \mu$, $\hat \sigma$, $\hat \kappa_3$, and $\hat \kappa_4$ denote the sample-based estimates of the first four [cumulants](https://en.wikipedia.org/wiki/Cumulant) of $Z = \tx{BoxCox}(X \| \hat \alpha, \hat \lambda)$.  The 4th order Gram-Charlier approximation to the true PDF $f(z)$ is
 $$
 \hat f(z) = \frac{1}{\sqrt{2\pi}\hat \sigma} \exp\left[-\frac{(z-\hat \mu)^2}{2\hat\sigma^2}\right] \times \left[1 + \frac{\hat \kappa_3}{3!\hat \sigma^3} H_3\left(\frac{z-\hat\mu}{\hat\sigma}\right) + \frac{\hat \kappa_4}{4!\hat\sigma^4} H_4\left(\frac{z-\hat\mu}{\hat\sigma}\right)\right],
 $$
-where $H_3(z) = z^3 - 3z$ and $H_4(z) = z^4 - 6z^2 + 3$ are the 3rd and 4th [Hermite polynomials](https://en.wikipedia.org/wiki/Hermite_polynomials).  The approximation $\hat f(z)$ is not guaranteed to be positive, but generally is for reasonably unimodal distributions, in which case $\hat f(z)$ is a (normalized) PDF with mean, variance, skewness and kurtosis exactly matching those of the transformed data $\rv Z n$.
+where $H_3(z) = z^3 - 3z$ and $H_4(z) = z^4 - 6z^2 + 3$ are the 3rd and 4th [Hermite polynomials](https://en.wikipedia.org/wiki/Hermite_polynomials).  The approximation $\hat f(z)$ is not guaranteed to be positive, but generally is for reasonably unimodal distributions, in which case $\hat f(z)$ is a (normalized) PDF with mean, variance, skewness and kurtosis exactly matching those of the transformed data $\rv 1 Z n$.
 
-The `gc4XD()` constructor estimates the PDF of the data $\rv X n$ on the original scale by inverting steps 1 and 2 above. The example below illustrates the quality of the approximation for $M = 1000$ observations of $X \sim \chi^2_{(4)}$.
+The `gc4XD()` constructor estimates the PDF of the data $\rv 1 X n$ on the original scale by inverting steps 1 and 2 above. The example below illustrates the quality of the approximation for $M = 1000$ observations of $X \sim \chi^2_{(4)}$.
 
 ```{r, echo = -1, fig.width = 10, fig.height = 4, out.width = "97%", fig.cap = "`gc4XD()` approximation with $M = 1000$ samples."}
 set.seed(1) # reproducible results
@@ -254,7 +254,7 @@ for(ii in 1:2) {
 
 ## Application: The Gaussian Copula Distribution {#gCop}
 
-Consider a $d$-dimensional random variable $\XX = (\rv X d)$ with unknown PDF $\XX \sim f(\xx)$.  A popular approach to statistical dependence modeling is to do so upon transforming $\XX$ to having univariate margins.  That is, if $F_i(x_i)$ is the CDF of $X_i$, then
+Consider a $d$-dimensional random variable $\XX = (\rv 1 X d)$ with unknown PDF $\XX \sim f(\xx)$.  A popular approach to statistical dependence modeling is to do so upon transforming $\XX$ to having univariate margins.  That is, if $F_i(x_i)$ is the CDF of $X_i$, then
 $$
 U_i = F_i^{-1}(X_i) \sim \tx{Unif}(0,1),
 $$
@@ -264,7 +264,7 @@ f(\xx) = c(\uu) \times\prod_{i=1}^n f_i(x_i), \qquad u_i = F_i(x_i).
 $$
 Thus, $c(\uu)$ is the joint PDF of marginally Uniform random variables, $U_i \sim \tx{Unif}(0,1)$, and is known as a [Copula distribution](https://en.wikipedia.org/wiki/Copula_(probability_theory)).  Numerous R packages provide various for fitting and sampling from Copula distributions, e.g., [**copula**](https://CRAN.R-project.org/package=copula) [@hofert.etal17],  [**VineCopula**](https://CRAN.R-project.org/package=VineCopula) [@schepsmeier.etal17], and many others listed in the [**Distributions**](https://CRAN.R-project.org/view=Distributions) Task View.  The `xDensity` methods for modeling the marginal distributions $f_i(x_i)$ can easily be combined with the Copula dependence models $c(\uu)$ provided by these packages.  **GaussCop** provides a simple and specific interface to the so-called Gaussian Copula distribution, which approximates the true $c(\uu)$ as follows:
 
-1. Let $\varphi(z)$ and $\Phi(z)$ denote the PDF and CDF of the standard normal $\N(0,1)$.  Now, consider the change-of-variables $Z_i = \Phi^{-1}(U_i)$, for which the joint PDF of $\ZZ = (\rv Z n)$ is
+1. Let $\varphi(z)$ and $\Phi(z)$ denote the PDF and CDF of the standard normal $\N(0,1)$.  Now, consider the change-of-variables $Z_i = \Phi^{-1}(U_i)$, for which the joint PDF of $\ZZ = (\rv 1 Z n)$ is
 $$
 g(\zz) = c(\uu) \times \prod_{i=1}^n \varphi(z_i), \qquad u_i = \Phi(z_i).
 $$
